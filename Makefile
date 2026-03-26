@@ -38,7 +38,8 @@ help:
 	@echo "Environments"
 	@echo "  make new  NAME=<n> SRC=<img>          create container from image"
 	@echo "  make run  NAME=<n>                    re-enter existing container"
-	@echo "  make stop NAME=<n>                    stop running container"
+	@echo "  make stop     NAME=<n>                stop running container"
+	@echo "  make stop.all                         stop all running $(CON_PREFIX)-* containers"
 	@echo "  make merge NAME=<n>                   commit container → image"
 	@echo ""
 	@echo "Inspect"
@@ -66,8 +67,11 @@ list:
 	@echo "=== Images ($(IMG_PREFIX)-*) ==="
 	@docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep $(IMG_PREFIX) || true
 	@echo ""
-	@echo "=== Containers ($(CON_PREFIX)-*) ==="
-	@docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
+	@echo "=== Containers running ($(CON_PREFIX)-*) ==="
+	@docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
+	@echo ""
+	@echo "=== Containers stopped ($(CON_PREFIX)-*) ==="
+	@docker ps -a --filter "status=exited" --filter "status=created" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
 
 # -------------------------------
 # create new env container
@@ -105,6 +109,16 @@ stop:
 	@if [ -z "$(NAME)" ]; then echo "Usage: make stop NAME=envA"; exit 1; fi
 	CONT=$(CON_PREFIX)-$(NAME); \
 	docker stop $$CONT && echo "[*] Stopped $$CONT"
+
+# -------------------------------
+# stop all running containers of our prefix
+# -------------------------------
+
+stop.all:
+	@RUNNING=$$(docker ps --format "{{.Names}}" | grep "^$(CON_PREFIX)-"); \
+	if [ -z "$$RUNNING" ]; then echo "[-] No running $(CON_PREFIX)-* containers"; exit 0; fi; \
+	echo "$$RUNNING" | xargs docker stop; \
+	echo "[*] Stopped all $(CON_PREFIX)-* containers"
 
 # -------------------------------
 # merge (container → image)
@@ -186,8 +200,16 @@ diff.meta:
 clean:
 	@if [ -z "$(NAME)" ]; then echo "Usage: make clean NAME=envA"; exit 1; fi
 	@CONT=$(CON_PREFIX)-$(NAME); IMG=$(IMG_PREFIX)-$(NAME); \
-	docker rm -f $$CONT 2>/dev/null && echo "[*] Removed container $$CONT" || echo "[-] Container $$CONT not found"; \
-	docker rmi -f $$IMG 2>/dev/null && echo "[*] Removed image $$IMG" || echo "[-] Image $$IMG not found"
+	if docker inspect $$CONT >/dev/null 2>&1; then \
+		docker rm -f $$CONT && echo "[*] Removed container $$CONT"; \
+	else \
+		echo "[-] Container $$CONT not found — skipping"; \
+	fi; \
+	if docker image inspect $$IMG >/dev/null 2>&1; then \
+		docker rmi -f $$IMG && echo "[*] Removed image $$IMG"; \
+	else \
+		echo "[-] Image $$IMG not found — skipping"; \
+	fi
 
 # -------------------------------
 # clean all managed (with confirmation)

@@ -21,6 +21,7 @@ make build
 | `make new NAME=<n> SRC=<img>` | Create container from image |
 | `make run NAME=<n>` | Re-enter existing container |
 | `make stop NAME=<n>` | Stop running container |
+| `make stop.all` | Stop all running `cldcon-*` containers |
 | `make merge NAME=<n>` | Commit container → image |
 | `make list` | List all managed images and containers |
 | `make cmp SRC=cldimg-<n> DST=cldcon-<n>` | Compare OverlayFS trees |
