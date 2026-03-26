@@ -8,3 +8,7 @@ __pycache__/
 envs/
 envs
 ./envs
+
+
+cache
+backups
