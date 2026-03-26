@@ -10,7 +10,7 @@ RUN apt update && apt install -y \
 
 # Install Node.js 20 LTS (Ubuntu's default is too old)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt install -y nodejs \
+    && apt install -y nodejs vim \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Claude Code CLI

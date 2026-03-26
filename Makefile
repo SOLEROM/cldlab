@@ -84,7 +84,7 @@ new:
 	docker rm -f $$CONT 2>/dev/null || true; \
 	docker run -it --name $$CONT \
 		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
-		-v $(CURDIR)/aliases:/home/user/.aliases:ro \
+		-v $(CURDIR)/aliases:/home/user/.aliases:rw \
 		-v $(CURDIR)/claude_tilda_base:/home/user/.claude-tpl:ro \
 		$${proj:+-v $$proj:/proj} \
 		$(SRC)
