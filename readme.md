@@ -60,6 +60,8 @@ make new NAME=envB SRC=cldimg-envA       # branch from snapshot
 
 - `cmp` and `diff` require `SRC` to be a `cldimg-*` image and `DST` to be a `cldcon-*` container — images give a zero-noise baseline (empty upperdir), containers hold the real mutations
 - `~/aliases` on the host is mounted read-only as `~/.aliases` in every container and auto-sourced by `.bashrc`
+- `claude_tilda_base/` is mounted as `~/.claude` in every container — edit it on the host to update the shared Claude config/marketplace template across all environments
+- If `$proj` is set in the environment, it is mounted as `/proj` inside the container (set via `.env`: `export proj=/path/to/dir`)
 - `ANTHROPIC_API_KEY` is injected at container creation — recreate if it changes
 - OverlayFS inspection requires `sudo` on the host
 - `envs/` is never deleted by `clean` or `clean.all`

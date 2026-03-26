@@ -28,4 +28,9 @@ RUN mkdir -p /home/user/.claude
 # Auto-source ~/.aliases if present
 RUN echo '[ -f ~/.aliases ] && source ~/.aliases' >> /home/user/.bashrc
 
+# Entrypoint: copies .claude template on first container start
+COPY --chown=user:user entrypoint.sh /home/user/entrypoint.sh
+RUN chmod +x /home/user/entrypoint.sh
+
+ENTRYPOINT ["/home/user/entrypoint.sh"]
 CMD ["/bin/bash"]
