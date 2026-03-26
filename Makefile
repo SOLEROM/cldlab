@@ -1,18 +1,10 @@
 # ===============================
-# Claude Lab Makefile (Prefixed)
+# Claude Overlay Lab — Root Makefile
 # ===============================
 
-IMG_PREFIX=cldimg
-CON_PREFIX=cldcon
-
-BASE_IMG=$(IMG_PREFIX)-base
-
-# words after the first goal become the in-container command (e.g. make plugA cld)
-_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-ifneq ($(_ARGS),)
-$(_ARGS):
-	@:
-endif
+IMG_PREFIX = cldimg
+CON_PREFIX = cldcon
+BASE_IMG   = $(IMG_PREFIX)-base
 
 # -------------------------------
 # helpers
@@ -34,37 +26,58 @@ endef
 # help (default)
 # -------------------------------
 
+.PHONY: help build base plug-template new run stop stop.all merge list cmp diff diff.meta clean clean.all
+
 .DEFAULT_GOAL := help
 
 help:
 	@echo "Claude Overlay Lab"
 	@echo ""
-	@echo "Build"
-	@echo "  make build                            build base image ($(BASE_IMG))"
+	@echo "Layers (build image + spin container)"
+	@echo "  make base                             build base image + spin container"
+	@echo "  make plug-template                            build base+plug-template images + spin container"
+	@echo "  make build                            build base image only ($(BASE_IMG))"
 	@echo ""
 	@echo "Environments"
-	@echo "  make new  NAME=<n> SRC=<img>          create container from image"
-	@echo "  make run  NAME=<n>                    re-enter existing container"
-	@echo "  make stop     NAME=<n>                stop running container"
+	@echo "  make new   NAME=<n> SRC=<img>         create container from image"
+	@echo "  make run   NAME=<n>                   re-enter existing container"
+	@echo "  make stop  NAME=<n>                   stop running container"
 	@echo "  make stop.all                         stop all running $(CON_PREFIX)-* containers"
 	@echo "  make merge NAME=<n>                   commit container → image"
 	@echo ""
 	@echo "Inspect"
 	@echo "  make list                             list all managed images and containers"
 	@echo "  make cmp  SRC=<entity> DST=<entity>   compare OverlayFS trees"
-	@echo "  make diff SRC=cldimg-<n> DST=cldcon-<n> [NAME=<folder>]   export DST upperdir to envs/"
+	@echo "  make diff SRC=cldimg-<n> DST=cldcon-<n> [NAME=<folder>]   export DST upperdir to diffs/"
 	@echo "  make diff.meta NAME=<n>               docker diff metadata"
 	@echo ""
 	@echo "Cleanup"
-	@echo "  make clean     NAME=<n>               remove container + image by name"
+	@echo "  make clean NAME=<n>                   remove container + image by name"
 	@echo "  make clean.all                        remove everything (with confirmation)"
 
 # -------------------------------
-# build base image
+# build base image only
 # -------------------------------
 
 build:
-	docker build -t $(BASE_IMG) .
+	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
+
+# ===============================
+# layers
+# ===============================
+
+base:
+	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) new NAME=base SRC=$(BASE_IMG)
+
+plug-template:
+	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) -C plug-template IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) new NAME=plug-template SRC=$(IMG_PREFIX)-plug-template
+
+# ===============================
+# container operations
+# ===============================
 
 # -------------------------------
 # list all managed entities
@@ -92,9 +105,9 @@ new:
 	docker run -it --name $$CONT \
 		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
 		-v $(CURDIR)/aliases:/home/user/.aliases:rw \
-		-v $(CURDIR)/claude_tilda_base:/home/user/.claude-tpl:ro \
+		-v $(CURDIR)/base/claude_tilda_base:/home/user/.claude-tpl:ro \
 		$${proj:+-v $$proj:/proj} \
-		$(SRC) $(CMD)
+		$(SRC)
 
 # -------------------------------
 # run existing container
@@ -144,7 +157,6 @@ merge:
 # -------------------------------
 # cmp (compare trees)
 # usage: make cmp SRC=cldimg-base DST=cldcon-envA
-# SRC must be a cldimg-* image; DST must be a cldcon-* container
 # -------------------------------
 
 cmp:
@@ -152,23 +164,19 @@ cmp:
 		echo "Usage: make cmp SRC=$(IMG_PREFIX)-<name> DST=$(CON_PREFIX)-<name>"; exit 1; fi
 	@case "$(SRC)" in $(IMG_PREFIX)-*) ;; *) echo "Error: SRC must be a $(IMG_PREFIX)-* image"; exit 1; esac
 	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
-
 	@SRC_CONT=$$($(call resolve_container,$(SRC))); \
 	DST_CONT=$$($(call resolve_container,$(DST))); \
-	\
 	SRC_UPPER=$$(docker inspect $$SRC_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
 	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
-	\
 	echo "=== SRC ($$SRC_CONT) ==="; \
 	sudo tree $$SRC_UPPER -la || sudo find $$SRC_UPPER; \
 	echo ""; \
 	echo "=== DST ($$DST_CONT) ==="; \
-	sudo tree $$DST_UPPER -la || sudo find $$DST_UPPER ;
+	sudo tree $$DST_UPPER -la || sudo find $$DST_UPPER
 
 # -------------------------------
 # diff (export DST upperdir)
-# usage: make diff SRC=cldimg-base DST=cldcon-envA
-# SRC must be a cldimg-* image; DST must be a cldcon-* container
+# usage: make diff SRC=cldimg-base DST=cldcon-envA [NAME=folder]
 # -------------------------------
 
 diff:
@@ -176,18 +184,14 @@ diff:
 		echo "Usage: make diff SRC=$(IMG_PREFIX)-<name> DST=$(CON_PREFIX)-<name>"; exit 1; fi
 	@case "$(SRC)" in $(IMG_PREFIX)-*) ;; *) echo "Error: SRC must be a $(IMG_PREFIX)-* image"; exit 1; esac
 	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
-
 	@DST_CONT=$$($(call resolve_container,$(DST))); \
-	\
 	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
-	\
 	if [ -n "$(NAME)" ]; then \
-		OUT=envs/$(NAME); \
+		OUT=diffs/$(NAME); \
 	else \
-		OUT=envs/$(DST)_minus_$(SRC)_$$(date +%Y%m%d_%H%M%S); \
+		OUT=diffs/$(DST)_minus_$(SRC)_$$(date +%Y%m%d_%H%M%S); \
 	fi; \
 	mkdir -p $$OUT; \
-	\
 	echo "[*] Exporting $(DST) → $$OUT"; \
 	sudo rsync -a $$DST_UPPER/ $$OUT/; \
 	echo "[*] Done"
@@ -230,13 +234,3 @@ clean.all:
 	@docker ps -a --format "{{.Names}}" | grep $(CON_PREFIX) | xargs -r docker rm -f && echo "[*] Removed all containers" || true
 	@docker images --format "{{.Repository}}" | grep $(IMG_PREFIX) | xargs -r docker rmi -f && echo "[*] Removed all images" || true
 	@echo "[*] Done"
-
-# -------------------------------
-# plugin layers
-# usage: make plugA
-# -------------------------------
-
-plugA:
-	$(MAKE) build
-	docker build -f Dockerfile.plugA -t $(IMG_PREFIX)-plugA .
-	$(MAKE) new NAME=plugA SRC=$(IMG_PREFIX)-plugA CMD="$(_ARGS)"
