@@ -44,7 +44,7 @@ help:
 	@echo "Inspect"
 	@echo "  make list                             list all managed images and containers"
 	@echo "  make cmp  SRC=<entity> DST=<entity>   compare OverlayFS trees"
-	@echo "  make diff SRC=<entity> DST=<entity>   export DST upperdir to envs/"
+	@echo "  make diff SRC=cldimg-<n> DST=cldcon-<n> [NAME=<folder>]   export DST upperdir to envs/"
 	@echo "  make diff.meta NAME=<n>               docker diff metadata"
 	@echo ""
 	@echo "Cleanup"
@@ -120,14 +120,15 @@ merge:
 
 # -------------------------------
 # cmp (compare trees)
-# usage:
-# make cmp SRC=cldcon-clean DST=cldcon-envA
-# make cmp SRC=cldimg-envA DST=cldcon-envB
+# usage: make cmp SRC=cldimg-base DST=cldcon-envA
+# SRC must be a cldimg-* image; DST must be a cldcon-* container
 # -------------------------------
 
 cmp:
 	@if [ -z "$(SRC)" ] || [ -z "$(DST)" ]; then \
-		echo "Usage: make cmp SRC=<entity> DST=<entity>"; exit 1; fi
+		echo "Usage: make cmp SRC=$(IMG_PREFIX)-<name> DST=$(CON_PREFIX)-<name>"; exit 1; fi
+	@case "$(SRC)" in $(IMG_PREFIX)-*) ;; *) echo "Error: SRC must be a $(IMG_PREFIX)-* image"; exit 1; esac
+	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
 
 	@SRC_CONT=$$($(call resolve_container,$(SRC))); \
 	DST_CONT=$$($(call resolve_container,$(DST))); \
@@ -143,22 +144,28 @@ cmp:
 
 # -------------------------------
 # diff (export DST upperdir)
-# usage:
-# make diff SRC=cldcon-clean DST=cldcon-envA
+# usage: make diff SRC=cldimg-base DST=cldcon-envA
+# SRC must be a cldimg-* image; DST must be a cldcon-* container
 # -------------------------------
 
 diff:
 	@if [ -z "$(SRC)" ] || [ -z "$(DST)" ]; then \
-		echo "Usage: make diff SRC=<entity> DST=<entity>"; exit 1; fi
+		echo "Usage: make diff SRC=$(IMG_PREFIX)-<name> DST=$(CON_PREFIX)-<name>"; exit 1; fi
+	@case "$(SRC)" in $(IMG_PREFIX)-*) ;; *) echo "Error: SRC must be a $(IMG_PREFIX)-* image"; exit 1; esac
+	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
 
 	@DST_CONT=$$($(call resolve_container,$(DST))); \
 	\
 	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
 	\
-	OUT=envs/$(DST)_minus_$(SRC); \
+	if [ -n "$(NAME)" ]; then \
+		OUT=envs/$(NAME); \
+	else \
+		OUT=envs/$(DST)_minus_$(SRC)_$$(date +%Y%m%d_%H%M%S); \
+	fi; \
 	mkdir -p $$OUT; \
 	\
-	echo "[*] Exporting $$DST → $$OUT"; \
+	echo "[*] Exporting $(DST) → $$OUT"; \
 	sudo rsync -a $$DST_UPPER/ $$OUT/; \
 	echo "[*] Done"
 
