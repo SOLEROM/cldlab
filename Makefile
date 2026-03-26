@@ -6,8 +6,9 @@ IMG_PREFIX = cldimg
 CON_PREFIX = cldcon
 BASE_IMG   = $(IMG_PREFIX)-base
 
--include .env
-export
+## in case makefile need to read env;
+# -include .env
+# export
 
 # -------------------------------
 # helpers
@@ -38,7 +39,8 @@ help:
 	@echo ""
 	@echo "Layers (build image + spin container)"
 	@echo "  make base                             build base image + spin container"
-	@echo "  make plug-template                            build base+plug-template images + spin container"
+	@echo "  make login                            build base+login images + spin container"
+	@echo "  make plug-template                    build base+plug-template images + spin container"
 	@echo "  make build                            build base image only ($(BASE_IMG))"
 	@echo ""
 	@echo "Environments"
