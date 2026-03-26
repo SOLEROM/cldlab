@@ -29,7 +29,7 @@ endef
 # help (default)
 # -------------------------------
 
-.PHONY: help build base plug-template new run stop stop.all merge list cmp diff diff.meta clean clean.all
+.PHONY: help build base login plug-template new run stop stop.all merge list cmp diff diff.meta clean clean.all
 
 .DEFAULT_GOAL := help
 
@@ -72,6 +72,12 @@ build:
 base:
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
 	$(MAKE) new NAME=base SRC=$(BASE_IMG)
+
+login:
+	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) -C login IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login $(if $(wildcard login/claude_tilda),TILDA=login/claude_tilda)
+
 
 plug-template:
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
