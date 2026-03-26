@@ -1,4 +1,4 @@
 FROM cldimg-base
 
-# install plugA plugins here
-RUN echo aaa >> /home/user/a
+# install any additional dependencies here, e.g.:
+# RUN apt-get update && apt-get install -y <package-name>

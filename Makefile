@@ -76,7 +76,7 @@ base:
 login:
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
 	$(MAKE) -C login IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login $(if $(wildcard login/claude_tilda),TILDA=login/claude_tilda)
+	$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login
 
 
 plug-template:

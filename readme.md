@@ -9,11 +9,12 @@ Isolated Docker environments for experimenting with Claude Code CLI — with ful
 ```
 cldlab/
 ├── Makefile              ← all commands live here
+├── .env                  ← env vars (ANTHROPIC_API_KEY, etc) — auto-loaded
 ├── aliases               ← mounted live as ~/.aliases in every container
-├── claude_tilda_base/    ← template copied into container on first start
-├── diffs/                 ← diff/export output (never deleted by clean)
+├── diffs/                ← diff/export output (never deleted by clean)
 ├── base/                 ← base layer (Ubuntu + Node + Claude Code CLI)
-└── plug-template/                ← plug-template layer (extends base)
+├── login/                ← login layer (persistent auth sessions, isolated ~/.claude)
+└── plug-template/        ← template for new plugin layers
 ```
 
 ---
@@ -25,14 +26,14 @@ All container operations and layer targets are in the root `Makefile`.
 
 | Command | Description |
 | ------- | ----------- |
-| `make base [cmd]` | Build base image + spin container |
-| `make plug-template [cmd]` | Build base+plug-template images + spin container |
+| `make base` | Build base image + spin container |
+| `make login` | Build base+login images + spin container |
+| `make plug-template` | Build base+plug-template images + spin container |
 | `make build` | Build base image only (`cldimg-base`) |
 
-The optional `[cmd]` runs inside the container on boot:
-```
-make plug-template cld      # spin plug-template container and run cld immediately
-```
+### Plugin `claude_tilda` override
+
+If a layer folder contains a `claude_tilda/` directory, it is mounted directly as `~/.claude` inside the container, overriding the base template. Not used for `login` (kept private).
 
 ---
 
@@ -72,8 +73,8 @@ make plug-template cld      # spin plug-template container and run cld immediate
 
 | Type | Prefix | Example |
 | ---- | ------ | ------- |
-| Images | `cldimg-` | `cldimg-base`, `cldimg-plug-template` |
-| Containers | `cldcon-` | `cldcon-base`, `cldcon-plug-template` |
+| Images | `cldimg-` | `cldimg-base`, `cldimg-login` |
+| Containers | `cldcon-` | `cldcon-base`, `cldcon-login` |
 
 ---
 
@@ -85,15 +86,21 @@ make new NAME=envA SRC=cldimg-base       # experiment from base
 make diff SRC=cldimg-base DST=cldcon-envA
 make merge NAME=envA                     # snapshot → cldimg-envA
 make new NAME=envB SRC=cldimg-envA       # branch from snapshot
+
+make login                               # spin login container
+# authenticate inside, then:
+make merge NAME=login                    # save session → cldimg-login
 ```
 
 ---
 
 ## Notes
 
+- `.env` is auto-loaded — put `ANTHROPIC_API_KEY=...` there
 - `aliases` is mounted as `~/.aliases` in every container and auto-sourced by `.bashrc`
-- `claude_tilda_base/` is copied to `~/.claude.json` + `~/.claude/` on first container start
-- Each container gets its own private copy — writes inside never affect the host template
+- `base/claude_tilda_base/` is copied to `~/.claude` + `~/.claude.json` on first container start
+- If a layer has `claude_tilda/`, it is mounted directly as `~/.claude` (overrides base template)
+- `login` layer keeps `~/.claude` private inside the container — credentials never touch the host
 - If `$proj` is set in the environment, it is mounted as `/proj` with trust pre-accepted
 - `cld` alias = `cd /proj && claude --dangerously-skip-permissions`
 - `ANTHROPIC_API_KEY` is injected at container creation — recreate if it changes
@@ -107,4 +114,5 @@ make new NAME=envB SRC=cldimg-envA       # branch from snapshot
 1. Create `<name>/Dockerfile` with `FROM cldimg-base` (or another layer)
 2. Create `<name>/Makefile` — copy `plug-template/Makefile`, change image name
 3. Add a target in root `Makefile` following the `plug-template` pattern
-4. Create `<name>/readme.md`
+4. Add `.PHONY: <name>` to the `.PHONY` line
+5. Create `<name>/readme.md`
