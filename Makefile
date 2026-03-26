@@ -223,3 +223,13 @@ clean.all:
 	@docker ps -a --format "{{.Names}}" | grep $(CON_PREFIX) | xargs -r docker rm -f && echo "[*] Removed all containers" || true
 	@docker images --format "{{.Repository}}" | grep $(IMG_PREFIX) | xargs -r docker rmi -f && echo "[*] Removed all images" || true
 	@echo "[*] Done"
+
+# -------------------------------
+# plugin layers
+# usage: make plugA
+# -------------------------------
+
+plugA:
+	$(MAKE) build
+	docker build -f Dockerfile.plugA -t $(IMG_PREFIX)-plugA .
+	$(MAKE) new NAME=plugA SRC=$(IMG_PREFIX)-plugA
