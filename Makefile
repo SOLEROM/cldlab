@@ -7,6 +7,13 @@ CON_PREFIX=cldcon
 
 BASE_IMG=$(IMG_PREFIX)-base
 
+# words after the first goal become the in-container command (e.g. make plugA cld)
+_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+ifneq ($(_ARGS),)
+$(_ARGS):
+	@:
+endif
+
 # -------------------------------
 # helpers
 # -------------------------------
@@ -87,7 +94,7 @@ new:
 		-v $(CURDIR)/aliases:/home/user/.aliases:rw \
 		-v $(CURDIR)/claude_tilda_base:/home/user/.claude-tpl:ro \
 		$${proj:+-v $$proj:/proj} \
-		$(SRC)
+		$(SRC) $(CMD)
 
 # -------------------------------
 # run existing container
@@ -232,4 +239,4 @@ clean.all:
 plugA:
 	$(MAKE) build
 	docker build -f Dockerfile.plugA -t $(IMG_PREFIX)-plugA .
-	$(MAKE) new NAME=plugA SRC=$(IMG_PREFIX)-plugA
+	$(MAKE) new NAME=plugA SRC=$(IMG_PREFIX)-plugA CMD="$(_ARGS)"
