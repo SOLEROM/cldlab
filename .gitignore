@@ -5,9 +5,9 @@ __pycache__/
 .env
 *.env
 
-envs/
-envs
-./envs
+diffs/
+diffs
+./diffs
 
 
 cache
