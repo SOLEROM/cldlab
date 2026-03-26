@@ -136,10 +136,10 @@ cmp:
 	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
 	\
 	echo "=== SRC ($$SRC_CONT) ==="; \
-	sudo tree $$SRC_UPPER || sudo find $$SRC_UPPER; \
+	sudo tree $$SRC_UPPER -la || sudo find $$SRC_UPPER; \
 	echo ""; \
 	echo "=== DST ($$DST_CONT) ==="; \
-	sudo tree $$DST_UPPER || sudo find $$DST_UPPER;
+	sudo tree $$DST_UPPER -la || sudo find $$DST_UPPER ;
 
 # -------------------------------
 # diff (export DST upperdir)
