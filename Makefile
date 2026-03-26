@@ -30,7 +30,7 @@ endef
 # help (default)
 # -------------------------------
 
-.PHONY: help build base login plug-template new run stop stop.all merge list cmp diff diff.meta clean clean.all
+.PHONY: help build base login plug-template new run stop merge list cmp diff diff.meta clean clear
 
 .DEFAULT_GOAL := help
 
@@ -57,8 +57,9 @@ help:
 	@echo "  make diff.meta NAME=<n>               docker diff metadata"
 	@echo ""
 	@echo "Cleanup"
-	@echo "  make clean NAME=<n>                   remove container + image by name"
-	@echo "  make clean.all                        remove everything (with confirmation)"
+	@echo "  make stop  [NAME=<n>]                 stop one container or all"
+	@echo "  make clean [NAME=<n>]                 remove containers only (one or all)"
+	@echo "  make clear [NAME=<n>]                 remove containers + images (one or all)"
 
 # -------------------------------
 # build base image only
@@ -135,24 +136,18 @@ run:
 	docker start -ai $$CONT
 
 # -------------------------------
-# stop a running container
-# usage: make stop NAME=envA
+# stop — NAME=x stops one, bare stops all
 # -------------------------------
 
 stop:
-	@if [ -z "$(NAME)" ]; then echo "Usage: make stop NAME=envA"; exit 1; fi
-	CONT=$(CON_PREFIX)-$(NAME); \
-	docker stop $$CONT && echo "[*] Stopped $$CONT"
-
-# -------------------------------
-# stop all running containers of our prefix
-# -------------------------------
-
-stop.all:
-	@RUNNING=$$(docker ps --format "{{.Names}}" | grep "^$(CON_PREFIX)-"); \
-	if [ -z "$$RUNNING" ]; then echo "[-] No running $(CON_PREFIX)-* containers"; exit 0; fi; \
-	echo "$$RUNNING" | xargs docker stop; \
-	echo "[*] Stopped all $(CON_PREFIX)-* containers"
+	@if [ -n "$(NAME)" ]; then \
+		docker stop $(CON_PREFIX)-$(NAME) && echo "[*] Stopped $(CON_PREFIX)-$(NAME)"; \
+	else \
+		RUNNING=$$(docker ps --format "{{.Names}}" | grep "^$(CON_PREFIX)-"); \
+		if [ -z "$$RUNNING" ]; then echo "[-] No running $(CON_PREFIX)-* containers"; exit 0; fi; \
+		echo "$$RUNNING" | xargs docker stop; \
+		echo "[*] Stopped all $(CON_PREFIX)-* containers"; \
+	fi
 
 # -------------------------------
 # merge (container → image)
@@ -218,31 +213,42 @@ diff.meta:
 	docker diff $$CONT
 
 # -------------------------------
-# clean by name (container + image)
-# usage: make clean NAME=envA
+# clean — remove containers only (NAME=x for one, bare for all)
 # -------------------------------
 
 clean:
-	@if [ -z "$(NAME)" ]; then echo "Usage: make clean NAME=envA"; exit 1; fi
-	@CONT=$(CON_PREFIX)-$(NAME); IMG=$(IMG_PREFIX)-$(NAME); \
-	if docker inspect $$CONT >/dev/null 2>&1; then \
-		docker rm -f $$CONT && echo "[*] Removed container $$CONT"; \
+	@if [ -n "$(NAME)" ]; then \
+		CONT=$(CON_PREFIX)-$(NAME); \
+		if docker inspect $$CONT >/dev/null 2>&1; then \
+			docker rm -f $$CONT && echo "[*] Removed container $$CONT"; \
+		else \
+			echo "[-] Container $$CONT not found"; \
+		fi; \
 	else \
-		echo "[-] Container $$CONT not found — skipping"; \
-	fi; \
-	if docker image inspect $$IMG >/dev/null 2>&1; then \
-		docker rmi -f $$IMG && echo "[*] Removed image $$IMG"; \
-	else \
-		echo "[-] Image $$IMG not found — skipping"; \
+		docker ps -a --format "{{.Names}}" | grep "^$(CON_PREFIX)-" | xargs -r docker rm -f && echo "[*] Removed all containers" || true; \
 	fi
 
 # -------------------------------
-# clean all managed (with confirmation)
+# clear — remove containers + images (NAME=x for one, bare for all)
 # -------------------------------
 
-clean.all:
-	@echo "This will remove ALL $(CON_PREFIX)-* containers and $(IMG_PREFIX)-* images."
-	@printf "Confirm? [y/N] " && read ans && [ "$$ans" = "y" ] || { echo "Aborted."; exit 1; }
-	@docker ps -a --format "{{.Names}}" | grep $(CON_PREFIX) | xargs -r docker rm -f && echo "[*] Removed all containers" || true
-	@docker images --format "{{.Repository}}" | grep $(IMG_PREFIX) | xargs -r docker rmi -f && echo "[*] Removed all images" || true
-	@echo "[*] Done"
+clear:
+	@if [ -n "$(NAME)" ]; then \
+		CONT=$(CON_PREFIX)-$(NAME); IMG=$(IMG_PREFIX)-$(NAME); \
+		if docker inspect $$CONT >/dev/null 2>&1; then \
+			docker rm -f $$CONT && echo "[*] Removed container $$CONT"; \
+		else \
+			echo "[-] Container $$CONT not found — skipping"; \
+		fi; \
+		if docker image inspect $$IMG >/dev/null 2>&1; then \
+			docker rmi -f $$IMG && echo "[*] Removed image $$IMG"; \
+		else \
+			echo "[-] Image $$IMG not found — skipping"; \
+		fi; \
+	else \
+		echo "This will remove ALL $(CON_PREFIX)-* containers and $(IMG_PREFIX)-* images."; \
+		printf "Confirm? [y/N] " && read ans && [ "$$ans" = "y" ] || { echo "Aborted."; exit 1; }; \
+		docker ps -a --format "{{.Names}}" | grep "^$(CON_PREFIX)-" | xargs -r docker rm -f && echo "[*] Removed all containers" || true; \
+		docker images --format "{{.Repository}}" | grep "^$(IMG_PREFIX)-" | xargs -r docker rmi -f && echo "[*] Removed all images" || true; \
+		echo "[*] Done"; \
+	fi
