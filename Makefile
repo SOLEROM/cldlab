@@ -6,7 +6,6 @@ IMG_PREFIX=cldimg
 CON_PREFIX=cldcon
 
 BASE_IMG=$(IMG_PREFIX)-base
-CLEAN_CONT=$(CON_PREFIX)-clean
 
 # -------------------------------
 # helpers
@@ -23,6 +22,34 @@ else \
 	echo "ERROR: $(1) not found"; exit 1; \
 fi
 endef
+
+# -------------------------------
+# help (default)
+# -------------------------------
+
+.DEFAULT_GOAL := help
+
+help:
+	@echo "Claude Overlay Lab"
+	@echo ""
+	@echo "Build"
+	@echo "  make build                            build base image ($(BASE_IMG))"
+	@echo ""
+	@echo "Environments"
+	@echo "  make new  NAME=<n> SRC=<img>          create container from image"
+	@echo "  make run  NAME=<n>                    re-enter existing container"
+	@echo "  make stop NAME=<n>                    stop running container"
+	@echo "  make merge NAME=<n>                   commit container → image"
+	@echo ""
+	@echo "Inspect"
+	@echo "  make list                             list all managed images and containers"
+	@echo "  make cmp  SRC=<entity> DST=<entity>   compare OverlayFS trees"
+	@echo "  make diff SRC=<entity> DST=<entity>   export DST upperdir to envs/"
+	@echo "  make diff.meta NAME=<n>               docker diff metadata"
+	@echo ""
+	@echo "Cleanup"
+	@echo "  make clean     NAME=<n>               remove container + image by name"
+	@echo "  make clean.all                        remove everything (with confirmation)"
 
 # -------------------------------
 # build base image
@@ -43,32 +70,41 @@ list:
 	@docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
 
 # -------------------------------
-# run clean container
-# -------------------------------
-
-run.clean:
-	docker rm -f $(CLEAN_CONT) 2>/dev/null || true
-	docker run -it --name $(CLEAN_CONT) $(BASE_IMG)
-
-# -------------------------------
 # create new env container
-# usage: make new NAME=envA
+# usage: make new NAME=envA SRC=cldimg-base
 # -------------------------------
 
 new:
-	@if [ -z "$(NAME)" ]; then echo "Usage: make new NAME=envA"; exit 1; fi
+	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make new NAME=envA SRC=cldimg-base"; exit 1; fi
 	CONT=$(CON_PREFIX)-$(NAME); \
 	docker rm -f $$CONT 2>/dev/null || true; \
-	docker run -it --name $$CONT $(BASE_IMG)
+	docker run -it --name $$CONT \
+		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
+		-v $(CURDIR)/aliases:/home/user/.aliases:ro \
+		$(SRC)
 
 # -------------------------------
 # run existing container
+# usage: make run NAME=envA
 # -------------------------------
 
 run:
 	@if [ -z "$(NAME)" ]; then echo "Usage: make run NAME=envA"; exit 1; fi
-	CONT=$(CON_PREFIX)-$(NAME); \
+	@CONT=$(CON_PREFIX)-$(NAME); \
+	if ! docker inspect $$CONT >/dev/null 2>&1; then \
+		echo "Container $$CONT does not exist. Run: make new NAME=$(NAME) SRC=<img>"; exit 1; \
+	fi; \
 	docker start -ai $$CONT
+
+# -------------------------------
+# stop a running container
+# usage: make stop NAME=envA
+# -------------------------------
+
+stop:
+	@if [ -z "$(NAME)" ]; then echo "Usage: make stop NAME=envA"; exit 1; fi
+	CONT=$(CON_PREFIX)-$(NAME); \
+	docker stop $$CONT && echo "[*] Stopped $$CONT"
 
 # -------------------------------
 # merge (container → image)
@@ -136,19 +172,23 @@ diff.meta:
 	docker diff $$CONT
 
 # -------------------------------
-# remove container
-# -------------------------------
-
-rm:
-	@if [ -z "$(NAME)" ]; then echo "Usage: make rm NAME=envA"; exit 1; fi
-	docker rm -f $(CON_PREFIX)-$(NAME)
-
-# -------------------------------
-# cleanup all managed
+# clean by name (container + image)
+# usage: make clean NAME=envA
 # -------------------------------
 
 clean:
-	docker ps -a --format "{{.Names}}" | grep $(CON_PREFIX) | xargs -r docker rm -f
-	docker images --format "{{.Repository}}" | grep $(IMG_PREFIX) | xargs -r docker rmi -f
-	rm -rf envs/*
-	echo "[*] Cleaned all $(IMG_PREFIX)* and $(CON_PREFIX)*"
+	@if [ -z "$(NAME)" ]; then echo "Usage: make clean NAME=envA"; exit 1; fi
+	@CONT=$(CON_PREFIX)-$(NAME); IMG=$(IMG_PREFIX)-$(NAME); \
+	docker rm -f $$CONT 2>/dev/null && echo "[*] Removed container $$CONT" || echo "[-] Container $$CONT not found"; \
+	docker rmi -f $$IMG 2>/dev/null && echo "[*] Removed image $$IMG" || echo "[-] Image $$IMG not found"
+
+# -------------------------------
+# clean all managed (with confirmation)
+# -------------------------------
+
+clean.all:
+	@echo "This will remove ALL $(CON_PREFIX)-* containers and $(IMG_PREFIX)-* images."
+	@printf "Confirm? [y/N] " && read ans && [ "$$ans" = "y" ] || { echo "Aborted."; exit 1; }
+	@docker ps -a --format "{{.Names}}" | grep $(CON_PREFIX) | xargs -r docker rm -f && echo "[*] Removed all containers" || true
+	@docker images --format "{{.Repository}}" | grep $(IMG_PREFIX) | xargs -r docker rmi -f && echo "[*] Removed all images" || true
+	@echo "[*] Done"

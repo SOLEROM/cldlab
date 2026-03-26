@@ -1,10 +1,10 @@
 # Claude Overlay Lab
 
-A minimal, reproducible environment lab for experimenting with Claude CLI tools, plugins, and agent frameworks — with full filesystem visibility using Docker OverlayFS.
+A minimal, reproducible environment lab for experimenting with Claude Code CLI, plugins, and agent frameworks — with full filesystem visibility using Docker OverlayFS.
 
 ---
 
-## 🧠 Overview
+## Overview
 
 Claude Overlay Lab provides:
 
@@ -25,7 +25,7 @@ Instead of guessing what changed, this system lets you:
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 Each environment is:
 
@@ -41,9 +41,15 @@ Container (cldcon-envX)
 OverlayFS (upperdir = all changes)
 ```
 
+The base image ships with:
+
+* `claude` CLI (`@anthropic-ai/claude-code`) pre-installed globally via npm
+* a `user` account with passwordless `sudo`
+* standard tooling: `git`, `curl`, `jq`, `tree`, `python3`, `nodejs`
+
 ---
 
-## 📦 Naming Convention
+## Naming Convention
 
 | Type       | Prefix    | Example     |
 | ---------- | --------- | ----------- |
@@ -52,9 +58,17 @@ OverlayFS (upperdir = all changes)
 
 ---
 
-## ⚙️ Setup
+## Setup
 
-### 1. Build base image
+### 1. Set your API key
+
+```
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+This is passed into containers automatically at creation time.
+
+### 2. Build base image
 
 ```
 make build
@@ -62,39 +76,21 @@ make build
 
 ---
 
-## 🚀 Usage
-
-### Run clean baseline
-
-```
-make run.clean
-```
-
-Creates:
-
-```
-cldcon-clean
-```
-
----
+## Usage
 
 ### Create new environment
 
 ```
-make new NAME=envA
+make new NAME=envA SRC=cldimg-base
 ```
 
-Creates:
+`SRC` is any image — `cldimg-base` for a fresh start, or a previously merged image (e.g. `cldimg-envA`) to branch from an existing environment. Creates `cldcon-envA` with `ANTHROPIC_API_KEY` injected.
 
-```
-cldcon-envA
-```
+Inside the container:
 
-Inside container:
-
-* install plugins
-* clone repos
-* run install scripts
+* run `claude` to start the CLI
+* install plugins / MCP servers
+* clone repos, run install scripts
 
 ---
 
@@ -104,9 +100,15 @@ Inside container:
 make run NAME=envA
 ```
 
+### Stop a running container
+
+```
+make stop NAME=envA
+```
+
 ---
 
-## 🔍 Inspect Changes
+## Inspect Changes
 
 ### Show filesystem changes (OverlayFS)
 
@@ -114,10 +116,7 @@ make run NAME=envA
 make cmp SRC=cldcon-clean DST=cldcon-envA
 ```
 
-Shows:
-
-* full tree of changes in both environments
-* based on OverlayFS upperdir
+Shows the full tree of mutations in both environments based on OverlayFS `upperdir`.
 
 ---
 
@@ -157,7 +156,7 @@ C /home/user/.bashrc
 
 ---
 
-## 🧱 Freeze Environment
+## Freeze Environment
 
 ### Merge container into image
 
@@ -165,13 +164,7 @@ C /home/user/.bashrc
 make merge NAME=envA
 ```
 
-Creates:
-
-```
-cldimg-envA
-```
-
-Use it as:
+Creates `cldimg-envA`. Use it as:
 
 ```
 docker run -it cldimg-envA
@@ -179,7 +172,7 @@ docker run -it cldimg-envA
 
 ---
 
-## 🔁 Compare Any Environments
+## Compare Any Environments
 
 Supports:
 
@@ -196,7 +189,7 @@ make diff SRC=cldimg-envA DST=cldcon-envB
 
 ---
 
-## 📋 List All Environments
+## List All Environments
 
 ```
 make list
@@ -216,27 +209,31 @@ Containers:
 
 ---
 
-## 🧹 Cleanup
+## Cleanup
 
-Remove all managed resources:
+### Remove a specific environment
 
 ```
-make clean
+make clean NAME=envA
 ```
+
+Removes `cldcon-envA` and `cldimg-envA`. The `envs/` directory is preserved.
+
+### Remove everything
+
+```
+make clean.all
+```
+
+Prompts for confirmation, then removes all `cldcon-*` containers and `cldimg-*` images. The `envs/` directory is preserved.
 
 ---
 
-## 🧠 Key Concepts
+## Key Concepts
 
 ### OverlayFS = Source of Truth
 
-All changes made inside a container are stored in:
-
-```
-upperdir
-```
-
-This includes:
+All changes made inside a container are stored in `upperdir`. This includes:
 
 * new files
 * modified files (copy-on-write)
@@ -261,22 +258,28 @@ This includes:
 
 ---
 
-## ⚠️ Notes
+## Notes
 
-* Accessing OverlayFS requires root (`sudo`)
+* Accessing OverlayFS requires root (`sudo`) on the host
+* `ANTHROPIC_API_KEY` is injected at container creation — re-export and recreate if it changes
 * `merge` creates a snapshot, not a clean build
 * exported diffs may include cache / temp files
 * no volumes are used → ensures full visibility
 
 ---
 
-## 🧪 Typical Workflow
+## Typical Workflow
 
 ```
-make run.clean
+export ANTHROPIC_API_KEY=sk-ant-...
 
-make new NAME=envA
-# install plugin
+make build
+
+make new NAME=clean SRC=cldimg-base
+# verify: claude --version
+
+make new NAME=envA SRC=cldimg-base
+# inside: claude, install plugins, etc.
 
 make diff SRC=cldcon-clean DST=cldcon-envA
 
@@ -287,7 +290,7 @@ docker run -it cldimg-envA
 
 ---
 
-## 🚀 Future Extensions
+## Future Extensions
 
 * automatic diff classification (bin/config/cache)
 * Dockerfile generation from diffs
@@ -296,9 +299,9 @@ docker run -it cldimg-envA
 
 ---
 
-## 🏁 Summary
+## Summary
 
-Claude Overlay Lab turns uncontrolled plugin environments into:
+Claude Overlay Lab turns uncontrolled Claude CLI environments into:
 
 * isolated
 * inspectable
@@ -307,6 +310,3 @@ Claude Overlay Lab turns uncontrolled plugin environments into:
 It replaces guesswork with:
 
 > **filesystem-level truth via OverlayFS**
-
----
-
