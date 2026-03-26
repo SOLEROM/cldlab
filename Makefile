@@ -30,7 +30,7 @@ endef
 # help (default)
 # -------------------------------
 
-.PHONY: help build base login plug-template new run stop merge list cmp diff diff.meta clean clear
+.PHONY: help build base login plug new run stop merge list cmp diff diff.meta clean clear
 
 .DEFAULT_GOAL := help
 
@@ -40,14 +40,12 @@ help:
 	@echo "Layers (build image + spin container)"
 	@echo "  make base                             build base image + spin container"
 	@echo "  make login                            build base+login images + spin container"
-	@echo "  make plug-template                    build base+plug-template images + spin container"
+	@echo "  make plug  NAME=<n> SRC=<img>          create plug-<n> from template, build + spin container"
 	@echo "  make build                            build base image only ($(BASE_IMG))"
 	@echo ""
 	@echo "Environments"
 	@echo "  make new   NAME=<n> SRC=<img>         create container from image"
 	@echo "  make run   NAME=<n>                   re-enter existing container"
-	@echo "  make stop  NAME=<n>                   stop running container"
-	@echo "  make stop.all                         stop all running $(CON_PREFIX)-* containers"
 	@echo "  make merge NAME=<n>                   commit container → image"
 	@echo ""
 	@echo "Inspect"
@@ -82,10 +80,16 @@ login:
 	$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login
 
 
-plug-template:
+plug:
+	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make plug NAME=<n> SRC=<img>"; exit 1; fi
+	@if [ ! -d plug-$(NAME) ]; then \
+		cp -r plug-template plug-$(NAME); \
+		sed -i 's/plug-template/plug-$(NAME)/g' plug-$(NAME)/Makefile; \
+		echo "[*] Created plug-$(NAME) from template"; \
+	fi
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) -C plug-template IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) new NAME=plug-template SRC=$(IMG_PREFIX)-plug-template $(if $(wildcard plug-template/claude_tilda),TILDA=plug-template/claude_tilda)
+	$(MAKE) -C plug-$(NAME) IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) new NAME=plug-$(NAME) SRC=$(SRC) $(if $(wildcard plug-$(NAME)/claude_tilda),TILDA=plug-$(NAME)/claude_tilda)
 
 # ===============================
 # container operations
