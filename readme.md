@@ -59,9 +59,12 @@ make new NAME=envB SRC=cldimg-envA       # branch from snapshot
 ## Notes
 
 - `cmp` and `diff` require `SRC` to be a `cldimg-*` image and `DST` to be a `cldcon-*` container — images give a zero-noise baseline (empty upperdir), containers hold the real mutations
-- `~/aliases` on the host is mounted read-only as `~/.aliases` in every container and auto-sourced by `.bashrc`
-- `claude_tilda_base/` is mounted as `~/.claude` in every container — edit it on the host to update the shared Claude config/marketplace template across all environments
-- If `$proj` is set in the environment, it is mounted as `/proj` inside the container (set via `.env`: `export proj=/path/to/dir`)
+- `aliases` is mounted as `~/.aliases` in every container and auto-sourced by `.bashrc` — edit on host, changes are live
+- `claude_tilda_base/dot_claude.json` is copied to `~/.claude.json` on first container start — controls dark mode, skips onboarding prompts
+- `claude_tilda_base/dot_claude/` is copied to `~/.claude/` on first container start — add files here for future Claude config needs
+- Each container gets its own private copy of the above — writes inside the container never affect the host templates
+- If `$proj` is set in the environment, it is mounted as `/proj` inside the container and the trust dialog is pre-accepted via `/proj/.claude/settings.json`
+- The `cld` alias (`cd /proj && claude --dangerously-skip-permissions`) starts Claude in `/proj` with no permission prompts
 - `ANTHROPIC_API_KEY` is injected at container creation — recreate if it changes
 - OverlayFS inspection requires `sudo` on the host
 - `envs/` is never deleted by `clean` or `clean.all`

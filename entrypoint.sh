@@ -1,7 +1,9 @@
 #!/bin/bash
-# On first start: copy the read-only template into the container's own ~/.claude
+# On first start: copy ~/.claude.json template into container's own home
 if [ ! -e ~/.claude/.initialized ]; then
-    cp -rT /home/user/.claude-tpl ~/.claude
+    cp -rT /home/user/.claude-tpl/dot_claude ~/.claude
+    cp /home/user/.claude-tpl/dot_claude.json ~/.claude.json
     touch ~/.claude/.initialized
 fi
+
 exec "$@"

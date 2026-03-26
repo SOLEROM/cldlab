@@ -1,3 +1,3 @@
 alias cc='clear'
 alias vialias='vi .aliases ; source .aliases'
-alias cld='claude'
+alias cld='cd /proj && claude --dangerously-skip-permissions'
