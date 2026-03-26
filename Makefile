@@ -6,6 +6,9 @@ IMG_PREFIX = cldimg
 CON_PREFIX = cldcon
 BASE_IMG   = $(IMG_PREFIX)-base
 
+-include .env
+export
+
 # -------------------------------
 # helpers
 # -------------------------------
@@ -73,7 +76,7 @@ base:
 plug-template:
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
 	$(MAKE) -C plug-template IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) new NAME=plug-template SRC=$(IMG_PREFIX)-plug-template
+	$(MAKE) new NAME=plug-template SRC=$(IMG_PREFIX)-plug-template $(if $(wildcard plug-template/claude_tilda),TILDA=plug-template/claude_tilda)
 
 # ===============================
 # container operations
@@ -106,6 +109,7 @@ new:
 		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
 		-v $(CURDIR)/aliases:/home/user/.aliases:rw \
 		-v $(CURDIR)/base/claude_tilda_base:/home/user/.claude-tpl:ro \
+		$(if $(TILDA),-v $(CURDIR)/$(TILDA):/home/user/.claude) \
 		$${proj:+-v $$proj:/proj} \
 		$(SRC)
 
