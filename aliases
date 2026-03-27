@@ -1,3 +1,4 @@
 alias cc='clear'
 alias vialias='vi .aliases ; source .aliases'
-alias cld='cd /proj && claude --dangerously-skip-permissions'
+alias proj='cd /proj && claude --dangerously-skip-permissions'
+alias cld='claude --dangerously-skip-permissions'

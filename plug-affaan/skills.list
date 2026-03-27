@@ -1,0 +1,245 @@
+ /skills                                                                                                                                                                                      
+                                                                                                                                                                                               
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Skills                                                                                                                                                                                       
+  233 skills                                                                                                                                                                                   
+                                                                                                                                                                                               
+  Project skills (.claude/skills, .claude/commands)                                                                                                                                            
+  everything-claude-code-conventions · ~33 description tokens                                                                                                                                  
+  database-migration · ~24 description tokens                                                                                                                                                  
+  feature-development · ~24 description tokens
+  add-language-rules · ~24 description tokens                                                                                                                                                  
+
+  User skills (~/.claude/skills, ~/.claude/commands)
+  frontend-slides · ~82 description tokens
+  continuous-learning-v2 · ~65 description tokens
+  ai-regression-testing · ~63 description tokens
+  configure-ecc · ~57 description tokens
+  cpp-coding-standards · ~49 description tokens
+  kotlin-patterns · ~48 description tokens
+  devfleet · ~48 description tokens
+  android-clean-architecture · ~47 description tokens
+  mcp-server-patterns · ~46 description tokens
+  skill-stocktake · ~46 description tokens
+  tdd-workflow · ~46 description tokens
+  context-budget · ~46 description tokens
+  compose-multiplatform-patterns · ~45 description tokens
+  kotlin-testing · ~45 description tokens
+  springboot-patterns · ~45 description tokens
+  kotlin-exposed-patterns · ~44 description tokens
+  django-verification · ~43 description tokens
+  springboot-tdd · ~43 description tokens
+  api-design · ~42 description tokens
+  golang-testing · ~42 description tokens
+  springboot-verification · ~42 description tokens
+  kotlin-build · ~42 description tokens
+  prompt-optimize · ~42 description tokens
+  kotlin-ktor-patterns · ~41 description tokens
+  laravel-patterns · ~41 description tokens
+  rust-testing · ~41 description tokens
+  rust-build · ~41 description tokens
+  backend-patterns · ~40 description tokens
+  java-coding-standards · ~40 description tokens
+  kotlin-coroutines-flows · ~40 description tokens
+  laravel-verification · ~40 description tokens
+  cpp-testing · ~39 description tokens
+  django-patterns · ~39 description tokens
+  plankton-code-quality · ~39 description tokens
+  rust-review · ~39 description tokens
+  python-patterns · ~38 description tokens
+  strategic-compact · ~38 description tokens
+  kotlin-review · ~38 description tokens
+  learn-eval · ~38 description tokens
+  rust-patterns · ~37 description tokens
+  python-review · ~37 description tokens
+  resume-session · ~37 description tokens
+  tdd · ~37 description tokens
+  cpp-build · ~37 description tokens
+  e2e · ~37 description tokens
+  django-tdd · ~36 description tokens
+  e2e-testing · ~36 description tokens
+  go-review · ~36 description tokens
+  go-build · ~36 description tokens
+  save-session · ~36 description tokens
+  claw · ~36 description tokens
+  skill-create · ~35 description tokens
+  aside · ~35 description tokens
+  frontend-patterns · ~34 description tokens
+  golang-patterns · ~34 description tokens
+  perl-testing · ~34 description tokens
+  python-testing · ~34 description tokens
+  cpp-review · ~34 description tokens
+  coding-standards · ~33 description tokens
+  continuous-learning · ~33 description tokens
+  plan · ~33 description tokens
+  laravel-tdd · ~32 description tokens
+  go-test · ~32 description tokens
+  perl-patterns · ~31 description tokens
+  eval-harness · ~30 description tokens
+  kotlin-test · ~30 description tokens
+  cpp-test · ~29 description tokens
+  rust-test · ~29 description tokens
+  iterative-retrieval · ~28 description tokens
+  project-guidelines-example · ~27 description tokens
+  orchestrate · ~23 description tokens
+  rules-distill · ~22 description tokens
+  verification-loop · ~20 description tokens
+  instinct-import · ~19 description tokens
+  skill-health · ~19 description tokens
+  sessions · ~19 description tokens
+  prune · ~19 description tokens
+  docs · ~18 description tokens
+  instinct-status · ~18 description tokens
+  evolve · ~17 description tokens
+  instinct-export · ~17 description tokens
+  setup-pm · ~17 description tokens
+  gradle-build · ~16 description tokens
+  multi-workflow · ~16 description tokens
+  projects · ~15 description tokens
+  multi-execute · ~15 description tokens
+  promote · ~14 description tokens
+  multi-frontend · ~14 description tokens
+  multi-plan · ~13 description tokens
+  multi-backend · ~13 description tokens
+  learn · ~10 description tokens
+  harness-audit · ~9 description tokens
+  update-codemaps · ~8 description tokens
+  loop-status · ~8 description tokens
+  update-docs · ~8 description tokens
+  model-route · ~8 description tokens
+  quality-gate · ~8 description tokens
+  refactor-clean · ~7 description tokens
+  verify · ~7 description tokens
+  checkpoint · ~7 description tokens
+  loop-start · ~7 description tokens
+  test-coverage · ~7 description tokens
+  build-fix · ~6 description tokens
+  code-review · ~6 description tokens
+  eval · ~4 description tokens
+  pm2 · ~3 description tokens
+
+  Plugin skills (plugin)
+  prompt-optimizer · everything-claude-code · ~189 description tokens
+  videodb · everything-claude-code · ~154 description tokens
+  blueprint · everything-claude-code · ~151 description tokens
+  quality-nonconformance · everything-claude-code · ~141 description tokens
+  energy-procurement · everything-claude-code · ~140 description tokens
+  inventory-demand-planning · everything-claude-code · ~134 description tokens
+  production-scheduling · everything-claude-code · ~132 description tokens
+  customs-trade-compliance · everything-claude-code · ~129 description tokens
+  returns-reverse-logistics · everything-claude-code · ~126 description tokens
+  carrier-relationship-management · everything-claude-code · ~125 description tokens
+  data-scraper-agent · everything-claude-code · ~109 description tokens
+  logistics-exception-management · everything-claude-code · ~108 description tokens
+  click-path-audit · everything-claude-code · ~100 description tokens
+  investor-materials · everything-claude-code · ~90 description tokens
+  frontend-slides · everything-claude-code · ~88 description tokens
+  article-writing · everything-claude-code · ~87 description tokens
+  video-editing · everything-claude-code · ~86 description tokens
+  market-research · everything-claude-code · ~83 description tokens
+  architecture-decision-records · everything-claude-code · ~80 description tokens
+  fal-ai-media · everything-claude-code · ~78 description tokens
+  dmux-workflows · everything-claude-code · ~77 description tokens
+  investor-outreach · everything-claude-code · ~74 description tokens
+  content-engine · everything-claude-code · ~73 description tokens
+  crosspost · everything-claude-code · ~72 description tokens
+  codebase-onboarding · everything-claude-code · ~71 description tokens
+  continuous-learning-v2 · everything-claude-code · ~70 description tokens
+  flutter-dart-code-review · everything-claude-code · ~70 description tokens
+  claude-api · everything-claude-code · ~69 description tokens
+  skill-comply · everything-claude-code · ~69 description tokens
+  ai-regression-testing · everything-claude-code · ~68 description tokens
+  deep-research · everything-claude-code · ~67 description tokens
+  x-api · everything-claude-code · ~66 description tokens
+  database-migrations · everything-claude-code · ~64 description tokens
+  documentation-lookup · everything-claude-code · ~64 description tokens
+  security-scan · everything-claude-code · ~64 description tokens
+  configure-ecc · everything-claude-code · ~63 description tokens
+  security-review · everything-claude-code · ~62 description tokens
+  exa-search · everything-claude-code · ~60 description tokens
+  cpp-coding-standards · everything-claude-code · ~55 description tokens
+  perl-security · everything-claude-code · ~55 description tokens
+  kotlin-patterns · everything-claude-code · ~54 description tokens
+  android-clean-architecture · everything-claude-code · ~53 description tokens
+  claude-devfleet · everything-claude-code · ~52 description tokens
+  deployment-patterns · everything-claude-code · ~52 description tokens
+  mcp-server-patterns · everything-claude-code · ~52 description tokens
+  everything-claude-code:skill-stocktake · everything-claude-code · ~52 description tokens
+  tdd-workflow · everything-claude-code · ~52 description tokens
+  foundation-models-on-device · everything-claude-code · ~51 description tokens
+  springboot-patterns · everything-claude-code · ~51 description tokens
+  compose-multiplatform-patterns · everything-claude-code · ~50 description tokens
+  django-security · everything-claude-code · ~50 description tokens
+  kotlin-exposed-patterns · everything-claude-code · ~50 description tokens
+  kotlin-testing · everything-claude-code · ~50 description tokens
+  regex-vs-llm-structured-text · everything-claude-code · ~50 description tokens
+  swift-concurrency-6-2 · everything-claude-code · ~50 description tokens
+  swift-protocol-di-testing · everything-claude-code · ~50 description tokens
+  swiftui-patterns · everything-claude-code · ~50 description tokens
+  nutrient-document-processing · everything-claude-code · ~49 description tokens
+  pytorch-patterns · everything-claude-code · ~49 description tokens
+  springboot-security · everything-claude-code · ~49 description tokens
+  api-design · everything-claude-code · ~48 description tokens
+  django-verification · everything-claude-code · ~48 description tokens
+  golang-testing · everything-claude-code · ~48 description tokens
+  springboot-tdd · everything-claude-code · ~48 description tokens
+  content-hash-cache-pattern · everything-claude-code · ~47 description tokens
+  jpa-patterns · everything-claude-code · ~47 description tokens
+  springboot-verification · everything-claude-code · ~47 description tokens
+  backend-patterns · everything-claude-code · ~46 description tokens
+  kotlin-coroutines-flows · everything-claude-code · ~46 description tokens
+  kotlin-ktor-patterns · everything-claude-code · ~46 description tokens
+  laravel-patterns · everything-claude-code · ~46 description tokens
+  laravel-security · everything-claude-code · ~46 description tokens
+  laravel-verification · everything-claude-code · ~46 description tokens
+  liquid-glass-design · everything-claude-code · ~46 description tokens
+  rust-testing · everything-claude-code · ~46 description tokens
+  cpp-testing · everything-claude-code · ~45 description tokens
+  django-patterns · everything-claude-code · ~45 description tokens
+  docker-patterns · everything-claude-code · ~45 description tokens
+  java-coding-standards · everything-claude-code · ~45 description tokens
+  nuxt4-patterns · everything-claude-code · ~45 description tokens
+  plankton-code-quality · everything-claude-code · ~45 description tokens
+  agent-eval · everything-claude-code · ~44 description tokens
+  clickhouse-io · everything-claude-code · ~44 description tokens
+  cost-aware-llm-pipeline · everything-claude-code · ~44 description tokens
+  search-first · everything-claude-code · ~44 description tokens
+  strategic-compact · everything-claude-code · ~44 description tokens
+  swift-actor-persistence · everything-claude-code · ~44 description tokens
+  autonomous-loops · everything-claude-code · ~43 description tokens
+  python-patterns · everything-claude-code · ~43 description tokens
+  rust-patterns · everything-claude-code · ~43 description tokens
+  agent-harness-construction · everything-claude-code · ~42 description tokens
+  django-tdd · everything-claude-code · ~42 description tokens
+  e2e-testing · everything-claude-code · ~42 description tokens
+  postgres-patterns · everything-claude-code · ~42 description tokens
+  bun-runtime · everything-claude-code · ~40 description tokens
+  golang-patterns · everything-claude-code · ~40 description tokens
+  perl-testing · everything-claude-code · ~40 description tokens
+  santa-method · everything-claude-code · ~40 description tokens
+  coding-standards · everything-claude-code · ~39 description tokens
+  continuous-learning · everything-claude-code · ~39 description tokens
+  frontend-patterns · everything-claude-code · ~39 description tokens
+  python-testing · everything-claude-code · ~39 description tokens
+  visa-doc-translate · everything-claude-code · ~39 description tokens
+  laravel-tdd · everything-claude-code · ~38 description tokens
+  nextjs-turbopack · everything-claude-code · ~38 description tokens
+  ralphinho-rfc-pipeline · everything-claude-code · ~38 description tokens
+  agentic-engineering · everything-claude-code · ~37 description tokens
+  ai-first-engineering · everything-claude-code · ~37 description tokens
+  perl-patterns · everything-claude-code · ~37 description tokens
+  enterprise-agent-ops · everything-claude-code · ~36 description tokens
+  eval-harness · everything-claude-code · ~36 description tokens
+  continuous-agent-loop · everything-claude-code · ~35 description tokens
+  iterative-retrieval · everything-claude-code · ~33 description tokens
+  nanoclaw-repl · everything-claude-code · ~32 description tokens
+  project-guidelines-example · everything-claude-code · ~32 description tokens
+  team-builder · everything-claude-code · ~26 description tokens
+  verification-loop · everything-claude-code · ~26 description tokens
+  everything-claude-code:benchmark · everything-claude-code · ~22 description tokens
+  everything-claude-code:browser-qa · everything-claude-code · ~21 description tokens
+  everything-claude-code:design-system · everything-claude-code · ~21 description tokens
+  everything-claude-code:safety-guard · everything-claude-code · ~20 description tokens
+  everything-claude-code:canary-watch · everything-claude-code · ~18 description tokens
+  everything-claude-code:product-lens · everything-claude-code · ~18 description tokens
+
