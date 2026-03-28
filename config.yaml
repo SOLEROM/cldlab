@@ -1,0 +1,24 @@
+app:
+  host: 127.0.0.1
+  port: 5080
+  tmux_socket: claude-control
+  tmux_prefix: "cldcc-"
+  scrollback_limit: 10000
+
+agents:
+  - name: base
+    path: .
+    type: docker
+    container: cldcon-base
+    make_run: "make run NAME=base"
+    make_stop: "make stop NAME=base"
+    readme: base/readme.md
+    auto_start: false
+    tags: [base, ubuntu, node]
+
+  - name: cldlab-shell
+    path: .
+    type: local_shell
+    readme: readme.md
+    auto_start: false
+    tags: [host, utility]
