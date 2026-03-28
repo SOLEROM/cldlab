@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Control Plane</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-brand">
+    <span class="header-icon">⚗</span>
+    <span class="header-title">Claude Control Plane</span>
+  </div>
+  <div class="header-status">
+    <span class="status-dot" id="conn-dot"></span>
+    <span id="conn-label">Connecting...</span>
+  </div>
+</header>
+
+<!-- Main layout -->
+<div class="layout">
+
+  <!-- Left sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span>Agents</span>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-xs" onclick="openConfigEditor()" title="Edit config.yaml">✎ config</button>
+        <button class="btn btn-xs" onclick="refreshAgents()" title="Refresh">↻</button>
+      </div>
+    </div>
+    <div id="agent-list" class="agent-list">
+      <div class="empty">Loading…</div>
+    </div>
+  </aside>
+
+  <!-- Workspace -->
+  <main class="workspace" id="workspace">
+
+    <!-- Empty state -->
+    <div class="workspace-empty" id="workspace-empty">
+      <div class="workspace-empty-icon">⚗</div>
+      <div>Select an agent from the sidebar</div>
+    </div>
+
+    <!-- Agent panel -->
+    <div class="agent-panel" id="agent-panel" style="display:none">
+
+      <!-- Toolbar -->
+      <div class="agent-toolbar">
+        <div class="agent-toolbar-left">
+          <span class="agent-name-label" id="panel-agent-name"></span>
+          <span class="agent-type-badge" id="panel-agent-type"></span>
+          <span class="status-badge" id="panel-status-badge"></span>
+        </div>
+        <div class="agent-toolbar-right" id="panel-actions"></div>
+      </div>
+
+      <!-- Split content area: terminal left, right panel right -->
+      <div class="split-area">
+
+        <!-- ── Left: terminal (always visible) ── -->
+        <div class="split-left">
+          <div class="terminal-toolbar">
+            <div class="terminal-sessions" id="terminal-sessions"></div>
+            <div class="terminal-toolbar-right">
+              <button class="btn btn-sm" onclick="renameActiveTab()" title="Rename active tab">✎</button>
+              <button class="btn btn-sm" onclick="newSession('shell')">+ Shell</button>
+              <button class="btn btn-sm btn-accent" onclick="newSession('claude')">+ Claude</button>
+            </div>
+          </div>
+          <div class="terminal-container" id="terminal-container">
+            <div class="terminal-placeholder" id="terminal-placeholder">
+              <p>No terminal session.<br>Click <strong>+ Shell</strong> or <strong>+ Claude</strong>.</p>
+            </div>
+            <div id="xterm-wrapper" style="display:none; position:absolute; inset:0;"></div>
+          </div>
+        </div>
+
+        <!-- ── Resize handle ── -->
+        <div class="split-handle" id="split-handle"></div>
+
+        <!-- ── Right: README / Config ── -->
+        <div class="split-right" id="split-right">
+          <div class="tabs">
+            <button class="tab active" data-tab="readme" onclick="switchRightTab('readme')">README</button>
+            <button class="tab" data-tab="config" onclick="switchRightTab('config')">Config</button>
+          </div>
+
+          <!-- README panel -->
+          <div class="right-tab-content active" id="right-tab-readme">
+            <div class="readme-toolbar">
+              <button class="btn btn-xs" id="readme-back-btn"    onclick="readmeGoBack()"    title="Back"    disabled>←</button>
+              <button class="btn btn-xs" id="readme-forward-btn" onclick="readmeGoForward()" title="Forward" disabled>→</button>
+              <span class="readme-file-label" id="readme-file-label"></span>
+              <div style="flex:1"></div>
+              <button class="btn btn-sm" id="readme-new-btn"    onclick="newReadmePage()">New</button>
+              <button class="btn btn-sm" id="readme-edit-btn"   onclick="toggleReadmeEdit()">Edit</button>
+              <button class="btn btn-sm btn-success" id="readme-save-btn"   onclick="saveReadme()"      style="display:none">Save</button>
+              <button class="btn btn-sm"             id="readme-cancel-btn" onclick="cancelReadmeEdit()" style="display:none">Cancel</button>
+            </div>
+            <div id="readme-view" class="readme-view"></div>
+            <textarea id="readme-editor" class="readme-editor" style="display:none" spellcheck="false"></textarea>
+          </div>
+
+          <!-- Config panel -->
+          <div class="right-tab-content" id="right-tab-config" style="display:none">
+            <div class="info-panel" id="info-panel"></div>
+          </div>
+
+        </div><!-- /split-right -->
+      </div><!-- /split-area -->
+    </div><!-- /agent-panel -->
+  </main>
+</div>
+
+<!-- Config YAML editor modal -->
+<div id="config-modal" class="modal-overlay" style="display:none" onclick="closeConfigModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">config.yaml</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-sm btn-danger" onclick="resetAllSessions()" title="Kill all tmux shells and PTY connections">↺ Reset shells</button>
+        <button class="btn btn-sm btn-success" onclick="saveConfigYaml()">Save</button>
+        <button class="btn btn-sm" onclick="closeConfigModal()">✕</button>
+      </div>
+    </div>
+    <div id="config-yaml-error" class="yaml-error" style="display:none"></div>
+    <div class="modal-body">
+      <textarea id="config-yaml-editor" class="config-yaml-editor" spellcheck="false"></textarea>
+      <div class="modal-help readme-view" id="config-help-panel">
+        <p style="color:var(--text-muted);font-size:11px">Loading help…</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
