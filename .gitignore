@@ -10,5 +10,8 @@ diffs
 ./diffs
 
 
+config.yaml
+
 cache
 backups
+control-plane/runtime/logs/server.log
