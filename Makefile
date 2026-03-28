@@ -45,7 +45,7 @@ help:
 	@echo ""
 	@echo "Environments"
 	@echo "  make new   NAME=<n> SRC=<img>         create container from image"
-	@echo "  make run   NAME=<n>                   re-enter existing container"
+	@echo "  make run   NAME=<n> [CMD=<cmd>]        re-enter container; CMD runs inside it (e.g. CMD=\"claude\")"
 	@echo "  make merge NAME=<n>                   commit container → image"
 	@echo ""
 	@echo "Inspect"
@@ -132,12 +132,17 @@ new:
 # -------------------------------
 
 run:
-	@if [ -z "$(NAME)" ]; then echo "Usage: make run NAME=envA"; exit 1; fi
+	@if [ -z "$(NAME)" ]; then echo "Usage: make run NAME=envA [CMD=<command>]"; exit 1; fi
 	@CONT=$(CON_PREFIX)-$(NAME); \
 	if ! docker inspect $$CONT >/dev/null 2>&1; then \
 		echo "Container $$CONT does not exist. Run: make new NAME=$(NAME) SRC=<img>"; exit 1; \
 	fi; \
-	docker start -ai $$CONT
+	if [ -n "$(CMD)" ]; then \
+		docker start $$CONT >/dev/null 2>&1 || true; \
+		docker exec -it $$CONT bash -c "$(CMD) || bash"; \
+	else \
+		docker start -ai $$CONT; \
+	fi
 
 # -------------------------------
 # stop — NAME=x stops one, bare stops all
