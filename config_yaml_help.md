@@ -28,6 +28,7 @@ Global server settings.
 | `tmux_socket` | `claude-control` | Name of the tmux socket file (creates `/tmp/tmux-<uid>/<socket>`). Keeps cldlab sessions isolated from any other tmux sessions on the machine. |
 | `tmux_prefix` | `cldcc-` | Prefix prepended to every tmux session name created by the control plane (e.g. `cldcc-base-shell`). Must end with `-`. Change this if you run multiple instances of the control plane. |
 | `scrollback_limit` | `10000` | Number of lines tmux keeps in each terminal's scrollback buffer. Higher values use more RAM. |
+| `cldStartCmd` | `claude` | Command run inside the container when you click **+ Claude** in the UI. Falls back to `bash` if the command exits. Change to e.g. `claude --dangerously-skip-permissions` or any wrapper script. |
 
 ### Example
 
@@ -38,6 +39,7 @@ app:
   tmux_socket: claude-control
   tmux_prefix: "cldcc-"
   scrollback_limit: 10000
+  cldStartCmd: "claude"
 ```
 
 ---
@@ -64,6 +66,7 @@ Used when `type: docker`. The control plane manages the container lifecycle via 
 | Key | Required | Default | Description |
 |-----|----------|---------|-------------|
 | `container` | no | `cldcon-<name>` | Docker container name. Must match exactly what `docker ps -a` shows. |
+| `cldStartCmd` | no | global `app.cldStartCmd` | Command run inside the container when **+ Claude** is clicked for this agent. Overrides the global default. E.g. `claude --dangerously-skip-permissions` or a custom wrapper script. |
 | `make_run` | no | `""` | Informational only — shown in the Config tab. The make command used to initially create/build this container. Not executed by the control plane. |
 | `make_stop` | no | `""` | Informational only — shown in the Config tab. |
 

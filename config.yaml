@@ -4,6 +4,7 @@ app:
   tmux_socket: claude-control
   tmux_prefix: "cldcc-"
   scrollback_limit: 10000
+  cldStartCmd: "claude"
 
 agents:
   - name: base
@@ -12,6 +13,7 @@ agents:
     container: cldcon-base
     make_run: "make run NAME=base"
     make_stop: "make stop NAME=base"
+    cldStartCmd: "claude --dangerously-skip-permissions"
     readme: base/readme.md
     auto_start: false
     tags: [base, ubuntu, node]

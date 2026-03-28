@@ -31,6 +31,8 @@ class Agent:
         self.tags = raw.get('tags', [])
         # container name for docker agents (default cldcon-<name>)
         self.container = raw.get('container', f'cldcon-{self.name}')
+        # command run by "+ Claude" button — per-agent override, falls back to global app setting
+        self.cld_start_cmd = raw.get('cldStartCmd', config_manager.cld_start_cmd)
         self._status = STATUS_UNKNOWN
 
     @property

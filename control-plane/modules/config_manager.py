@@ -43,6 +43,10 @@ class ConfigManager:
         return int(self._app().get('scrollback_limit', 10000))
 
     @property
+    def cld_start_cmd(self):
+        return self._app().get('cldStartCmd', 'claude')
+
+    @property
     def agents_raw(self):
         return self._raw.get('agents', [])
 

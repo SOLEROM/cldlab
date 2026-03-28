@@ -15,3 +15,5 @@ config.yaml
 cache
 backups
 control-plane/runtime/logs/server.log
+*server.log*
+*.log

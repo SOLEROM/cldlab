@@ -40,7 +40,8 @@ class SessionManager:
         """Return the shell command to run as the tmux session's direct process."""
         if agent.type == 'docker':
             if kind == 'claude':
-                return f'docker exec -it {agent.container} bash -c "claude || bash"'
+                cmd = agent.cld_start_cmd
+                return f'docker exec -it {agent.container} bash -c "{cmd} || bash"'
             else:
                 return f'docker exec -it {agent.container} bash'
         else:
