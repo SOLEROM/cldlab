@@ -28,6 +28,9 @@ RUN mkdir -p /home/user/.claude
 # Auto-source ~/.aliases if present
 RUN echo '[ -f ~/.aliases ] && source ~/.aliases' >> /home/user/.bashrc
 
+# Show container name in prompt when CLDLAB_NAME is set (must come after Ubuntu's default PS1)
+RUN echo '[ -n "$CLDLAB_NAME" ] && PS1="[$CLDLAB_NAME] \u:\w\$ "' >> /home/user/.bashrc
+
 # Entrypoint: copies .claude template on first container start
 COPY --chown=user:user entrypoint.sh /home/user/entrypoint.sh
 RUN chmod +x /home/user/entrypoint.sh

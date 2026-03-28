@@ -41,9 +41,9 @@ class SessionManager:
         if agent.type == 'docker':
             if kind == 'claude':
                 cmd = agent.cld_start_cmd
-                return f'docker exec -it {agent.container} bash -c "{cmd} || bash"'
+                return f"docker exec -it -e CLDLAB_NAME={agent.name} {agent.container} bash -c \"{cmd} || bash\""
             else:
-                return f'docker exec -it {agent.container} bash'
+                return f"docker exec -it -e CLDLAB_NAME={agent.name} {agent.container} bash"
         else:
             # local_shell — just start a shell
             return None  # tmux will start default shell in cwd

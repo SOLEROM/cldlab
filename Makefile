@@ -120,6 +120,7 @@ new:
 	docker rm -f $$CONT 2>/dev/null || true; \
 	docker run -it --name $$CONT \
 		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
+		-e CLDLAB_NAME=$(NAME) \
 		-v $(CURDIR)/aliases:/home/user/.aliases:rw \
 		-v $(CURDIR)/base/claude_tilda_base:/home/user/.claude-tpl:ro \
 		$(if $(TILDA),-v $(CURDIR)/$(TILDA):/home/user/.claude) \
@@ -139,9 +140,10 @@ run:
 	fi; \
 	if [ -n "$(CMD)" ]; then \
 		docker start $$CONT >/dev/null 2>&1 || true; \
-		docker exec -it $$CONT bash -c "$(CMD) || bash"; \
+		docker exec -it -e CLDLAB_NAME=$(NAME) $$CONT bash -c "$(CMD) || bash"; \
 	else \
-		docker start -ai $$CONT; \
+		docker start $$CONT >/dev/null 2>&1 || true; \
+		docker exec -it -e CLDLAB_NAME=$(NAME) $$CONT bash; \
 	fi
 
 # -------------------------------
