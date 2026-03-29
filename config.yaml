@@ -18,7 +18,19 @@ agents:
     auto_start: false
     tags: [base, ubuntu, node]
 
-  - name: cldlab-shell
+  - name: affaan
+    path: .
+    type: docker
+    container: cldcon-plug-affaan
+    make_run: "make run NAME=plug-affan"
+    make_stop: "make stop NAME=plug-affan"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: plug-affaan/readme.md
+    auto_start: false
+    tags: [login, plug]
+
+
+  - name: localShell
     path: .
     type: local_shell
     readme: readme.md

@@ -4,13 +4,17 @@ __pycache__/
 
 .env
 *.env
+.credentials.json
+*.credentials.json
+*credentials*
+
+
 
 diffs/
 diffs
 ./diffs
+todo
 
-
-config.yaml
 
 cache
 backups
