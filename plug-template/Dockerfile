@@ -1,4 +1,5 @@
-FROM cldimg-base
+FROM cldimg-login:latest
 
-# install plugA plugins here
-RUN echo aaa >> /home/user/a
+RUN date >> /home/user/.create_time
+# install any additional dependencies here, e.g.:
+# RUN apt-get update && apt-get install -y <package-name>

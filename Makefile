@@ -40,7 +40,7 @@ help:
 	@echo "Layers (build image + spin container)"
 	@echo "  make base                             build base image + spin container"
 	@echo "  make login                            build base+login images + spin container"
-	@echo "  make plug  NAME=<n> SRC=<img>          create plug-<n> from template, build + spin container"
+	@echo "  make plug  NAME=<n> 		           create plug-<n> from template, build + spin container"
 	@echo "  make build                            build base image only ($(BASE_IMG))"
 	@echo ""
 	@echo "Environments"
@@ -75,13 +75,17 @@ base:
 	$(MAKE) new NAME=base SRC=$(BASE_IMG)
 
 login:
-	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) -C login IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login
+	if docker image inspect $(IMG_PREFIX)-login >/dev/null 2>&1; then \
+		$(MAKE) run NAME=login; \
+	else \
+		$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX); \
+		$(MAKE) -C login IMG_PREFIX=$(IMG_PREFIX); \
+		$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login; \
+	fi
 
 
 plug:
-	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make plug NAME=<n> SRC=<img>"; exit 1; fi
+	@if [ -z "$(NAME)" ] ]; then echo "Usage: make plug NAME=<n>"; exit 1; fi
 	@if [ ! -d plug-$(NAME) ]; then \
 		cp -r plug-template plug-$(NAME); \
 		sed -i 's/plug-template/plug-$(NAME)/g' plug-$(NAME)/Makefile; \
@@ -89,7 +93,10 @@ plug:
 	fi
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
 	$(MAKE) -C plug-$(NAME) IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) new NAME=plug-$(NAME) SRC=$(SRC) $(if $(wildcard plug-$(NAME)/claude_tilda),TILDA=plug-$(NAME)/claude_tilda)
+# 	// spin the new docker; pay attention to toldat claude - use only if needed to share wiht host as will prevent login !!!! //
+# 	$(MAKE) new NAME=plug-$(NAME) SRC=$(IMG_PREFIX)-plug-$(NAME) $(if $(wildcard plug-$(NAME)/claude_tilda),TILDA=plug-$(NAME)/claude_tilda)
+	$(MAKE) new NAME=plug-$(NAME) SRC=$(IMG_PREFIX)-plug-$(NAME)
+
 
 # ===============================
 # container operations
@@ -110,7 +117,7 @@ list:
 	@docker ps -a --filter "status=exited" --filter "status=created" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
 
 # -------------------------------
-# create new env container
+# create new container instance from image
 # usage: make new NAME=envA SRC=cldimg-base
 # -------------------------------
 
