@@ -295,8 +295,9 @@ function openTerminalSession(sessionId) {
     if (!sess.copyMode && direction === 'up') {
       sess.copyMode = true;
       state.socket.emit('scroll', { session: sessionId, command: 'enter' });
-    }
-    if (sess.copyMode) {
+      setTimeout(() =>
+        state.socket.emit('scroll', { session: sessionId, command: 'up', lines }), 50);
+    } else if (sess.copyMode) {
       state.socket.emit('scroll', { session: sessionId, command: direction, lines });
     }
   }, { passive: false });
@@ -858,8 +859,9 @@ function _openSessionSilent(sessionId) {
     if (!sess.copyMode && direction === 'up') {
       sess.copyMode = true;
       state.socket.emit('scroll', { session: sessionId, command: 'enter' });
-    }
-    if (sess.copyMode) {
+      setTimeout(() =>
+        state.socket.emit('scroll', { session: sessionId, command: 'up', lines }), 50);
+    } else if (sess.copyMode) {
       state.socket.emit('scroll', { session: sessionId, command: direction, lines });
     }
   }, { passive: false });
