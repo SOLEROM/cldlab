@@ -295,9 +295,10 @@ function openTerminalSession(sessionId) {
     state.socket.emit('input', { session: sessionId, data });
   });
 
-  // Mouse wheel — drive tmux copy-mode scroll
+  // Mouse wheel — drive tmux copy-mode scroll (capture: true intercepts before xterm's own handler)
   termDiv.addEventListener('wheel', e => {
     e.preventDefault();
+    e.stopPropagation();
     const sess = state.sessions[sessionId];
     if (!sess) return;
     const direction = e.deltaY < 0 ? 'up' : 'down';
@@ -311,7 +312,7 @@ function openTerminalSession(sessionId) {
     } else if (sess.copyMode) {
       state.socket.emit('scroll', { session: sessionId, command: direction, lines });
     }
-  }, { passive: false });
+  }, { passive: false, capture: true });
 
   new ResizeObserver(() => {
     if (state.activeSession === sessionId) {
@@ -866,6 +867,7 @@ function _openSessionSilent(sessionId) {
 
   termDiv.addEventListener('wheel', e => {
     e.preventDefault();
+    e.stopPropagation();
     const sess = state.sessions[sessionId];
     if (!sess) return;
     const direction = e.deltaY < 0 ? 'up' : 'down';
@@ -878,7 +880,7 @@ function _openSessionSilent(sessionId) {
     } else if (sess.copyMode) {
       state.socket.emit('scroll', { session: sessionId, command: direction, lines });
     }
-  }, { passive: false });
+  }, { passive: false, capture: true });
 
   setTimeout(() => {
     fitAddon.fit();
