@@ -15,6 +15,7 @@ const state = {
   readmeEditing: false,
   pendingAutoOpen: null,    // agent name awaiting auto-shell on next 'running' status
   tabLabels: {},            // sessionId -> custom display label
+  lastAgentSession: {},     // agentName -> last active sessionId for that agent
 };
 
 // ── Socket.IO ──────────────────────────────────────────────────────────────
@@ -121,6 +122,16 @@ async function selectAgent(name) {
   renderInfoPanel(a);
   loadReadme(name);
   renderSessionTabs();
+
+  // Switch terminal view: restore last active session for this agent, or show placeholder
+  const agentSessions = Object.keys(state.sessions).filter(sid => sid.includes(name));
+  if (agentSessions.length) {
+    const last = state.lastAgentSession[name];
+    activateSession(last && agentSessions.includes(last) ? last : agentSessions[agentSessions.length - 1]);
+  } else {
+    Object.values(state.sessions).forEach(s => s.element.style.display = 'none');
+    showTerminalPlaceholder();
+  }
 }
 
 function updateToolbar() {
@@ -319,6 +330,8 @@ function openTerminalSession(sessionId) {
 function activateSession(sessionId) {
   Object.values(state.sessions).forEach(s => s.element.style.display = 'none');
   state.activeSession = sessionId;
+  // Remember last active session per agent so switching back restores it
+  if (state.selectedAgent) state.lastAgentSession[state.selectedAgent] = sessionId;
   const sess = state.sessions[sessionId];
   if (sess) {
     sess.element.style.display = 'block';
