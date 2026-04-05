@@ -44,8 +44,8 @@ help:
 	@echo "  make build                            build base image only ($(BASE_IMG))"
 	@echo ""
 	@echo "Environments"
-	@echo "  make new   NAME=<n> SRC=<img>         create container from image"
-	@echo "  make run   NAME=<n> [CMD=<cmd>]        re-enter container; CMD runs inside it (e.g. CMD=\"claude\")"
+	@echo "  make new   NAME=<n> SRC=<img> [SHARE=<path>]  create container from image; SHARE mounts host folder to ~/share"
+	@echo "  make run   NAME=<n> [CMD=<cmd>]               re-enter container; CMD runs inside it (e.g. CMD=\"claude\")"
 	@echo "  make merge NAME=<n>                   commit container → image"
 	@echo ""
 	@echo "Inspect"
@@ -118,11 +118,11 @@ list:
 
 # -------------------------------
 # create new container instance from image
-# usage: make new NAME=envA SRC=cldimg-base
+# usage: make new NAME=envA SRC=cldimg-base [SHARE=/path/to/folder]
 # -------------------------------
 
 new:
-	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make new NAME=envA SRC=cldimg-base"; exit 1; fi
+	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make new NAME=envA SRC=cldimg-base [SHARE=/path]"; exit 1; fi
 	CONT=$(CON_PREFIX)-$(NAME); \
 	docker rm -f $$CONT 2>/dev/null || true; \
 	docker run -it --name $$CONT \
@@ -132,6 +132,7 @@ new:
 		-v $(CURDIR)/base/claude_tilda_base:/home/user/.claude-tpl:ro \
 		$(if $(TILDA),-v $(CURDIR)/$(TILDA):/home/user/.claude) \
 		$${proj:+-v $$proj:/proj} \
+		$(if $(SHARE),-v $(SHARE):/home/user/share:rw) \
 		$(SRC)
 
 # -------------------------------

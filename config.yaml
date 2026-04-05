@@ -17,6 +17,7 @@ agents:
     readme: base/readme.md
     auto_start: false
     tags: [base, ubuntu, node]
+    # share: /data/proj/myproject   # optional: mounts host folder to ~/share in container
 
   - name: affaan
     path: .

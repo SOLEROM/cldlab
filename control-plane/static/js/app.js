@@ -619,6 +619,7 @@ function renderInfoPanel(agent) {
     ['Status',    `<span class="status-badge s-${esc(agent.status)}">${esc(agent.status)}</span>`],
     ['Path',      esc(agent.path)],
     ['Container', esc(agent.container || '-')],
+    ['Share',     agent.share ? esc(agent.share) : '-'],
     ['make_run',  `<code>${esc(agent.make_run || '-')}</code>`],
     ['make_stop', `<code>${esc(agent.make_stop || '-')}</code>`],
     ['Tags',      agent.tags?.length

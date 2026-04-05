@@ -31,6 +31,8 @@ class Agent:
         self.tags = raw.get('tags', [])
         # container name for docker agents (default cldcon-<name>)
         self.container = raw.get('container', f'cldcon-{self.name}')
+        # optional host folder to mount as ~/share inside the container
+        self.share = raw.get('share', '')
         # command run by "+ Claude" button — per-agent override, falls back to global app setting
         self.cld_start_cmd = raw.get('cldStartCmd', config_manager.cld_start_cmd)
         self._status = STATUS_UNKNOWN
@@ -54,6 +56,7 @@ class Agent:
             'auto_start': self.auto_start,
             'tags': self.tags,
             'container': self.container,
+            'share': self.share,
             'status': self._status,
         }
 
