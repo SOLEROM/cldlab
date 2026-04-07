@@ -19,7 +19,7 @@ agents:
     tags: [base, ubuntu, node]
     # share: /data/proj/myproject   # optional: mounts host folder to ~/share in container
 
-  - name: affaan
+  - name: EveryClaudeCode
     path: .
     type: docker
     container: cldcon-plug-affaan
@@ -29,6 +29,19 @@ agents:
     readme: plug-affaan/readme.md
     auto_start: false
     tags: [login, plug]
+    share: /data/proj/agents
+
+  - name: OhMyCld
+    path: .
+    type: docker
+    container: cldcon-plug-ohmycld
+    make_run: "make run NAME=plug-ohmycld"
+    make_stop: "make stop NAME=plug-ohmycld"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: plug-ohmycld/readme.md
+    auto_start: false
+    tags: [login, plug]
+    share: /data/proj/agents
 
 
   - name: localShell

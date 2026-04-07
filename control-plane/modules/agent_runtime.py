@@ -1,6 +1,7 @@
 """
 Agent lifecycle management — start, stop, restart, status via docker commands.
 """
+import json
 import subprocess
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -22,6 +23,18 @@ def _docker_container_status(container_name):
     if result.returncode != 0:
         return None
     return result.stdout.strip()
+
+
+def _inspect_container(container_name):
+    """Full docker inspect, returns first element parsed or None."""
+    result = run_sync(['docker', 'inspect', container_name], timeout=5)
+    if result.returncode != 0:
+        return None
+    try:
+        data = json.loads(result.stdout.strip())
+        return data[0] if data else None
+    except Exception:
+        return None
 
 
 class AgentRuntime:
@@ -76,6 +89,48 @@ class AgentRuntime:
                     logger.warning(f'refresh_status failed for {futures[f]}: {e}')
         logger.info(f'refresh_all: {len(agents)} agents in {(time.time()-t0)*1000:.1f}ms')
 
+    def _recreate_with_share(self, agent):
+        """Recreate a container preserving its config but adding/updating the share mount."""
+        info = _inspect_container(agent.container)
+        if not info:
+            return False, f'Cannot inspect {agent.container}'
+
+        image = info['Config']['Image']
+        tty = info['Config'].get('Tty', False)
+        stdin_open = info['Config'].get('OpenStdin', False)
+        env = info['Config'].get('Env', [])
+        mounts = info.get('Mounts', [])
+
+        result = run_sync(['docker', 'rm', '-f', agent.container], timeout=15)
+        if result.returncode != 0:
+            return False, f'Failed to remove container: {result.stderr}'
+
+        cmd = ['docker', 'create', '--name', agent.container]
+        if tty:
+            cmd.append('-t')
+        if stdin_open:
+            cmd.append('-i')
+        for e in env:
+            cmd += ['-e', e]
+        for m in mounts:
+            src = m.get('Source', '')
+            dst = m.get('Destination', '')
+            if not src or not dst:
+                continue
+            if dst == '/home/user/share':
+                continue  # will be replaced below
+            mode = 'rw' if m.get('RW', True) else 'ro'
+            cmd += ['-v', f'{src}:{dst}:{mode}']
+        cmd += ['-v', f'{agent.share}:/home/user/share:rw']
+        cmd.append(image)
+
+        result = run_sync(cmd, timeout=30)
+        if result.returncode != 0:
+            return False, f'Failed to recreate container: {result.stderr}'
+
+        logger.info(f'Recreated {agent.container} with share {agent.share} → /home/user/share')
+        return True, f'Recreated with share {agent.share}'
+
     def start(self, name):
         """Start a docker agent container (non-interactive detached start)."""
         agent = self.registry.get(name)
@@ -88,6 +143,22 @@ class AgentRuntime:
         current = self.refresh_status(name)
         if current == STATUS_RUNNING:
             return True, 'Already running'
+
+        # If share is configured, ensure it is mounted — recreate container if not
+        if agent.share and current != STATUS_CONFIGURED:
+            info = _inspect_container(agent.container)
+            if info:
+                mounted = any(
+                    m.get('Destination') == '/home/user/share' and m.get('Source') == agent.share
+                    for m in info.get('Mounts', [])
+                )
+                if not mounted:
+                    logger.info(f'Share mount missing for {name}, recreating container')
+                    ok, msg = self._recreate_with_share(agent)
+                    if not ok:
+                        agent.status = STATUS_ERROR
+                        self._emit_status(name, STATUS_ERROR)
+                        return False, msg
 
         agent.status = STATUS_STARTING
         self._emit_status(name, STATUS_STARTING)
