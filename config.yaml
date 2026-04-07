@@ -43,6 +43,17 @@ agents:
     tags: [login, plug]
     share: /data/proj/agents
 
+  - name: gsd2
+    path: .
+    type: docker
+    container: cldcon-plug-gsd2
+    make_run: "make run NAME=plug-gsd2"
+    make_stop: "make stop NAME=plug-gsd2"
+    cldStartCmd: "gsd"
+    readme: plug-gsd2/readme.md
+    auto_start: false
+    tags: [login, plug]
+    share: /data/proj/agents
 
   - name: localShell
     path: .
