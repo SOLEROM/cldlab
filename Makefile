@@ -212,6 +212,13 @@ diff:
 	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
 	@DST_CONT=$$($(call resolve_container,$(DST))); \
 	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
+	if [ -z "$$DST_UPPER" ] || [ "$$DST_UPPER" = "null" ]; then \
+		PID=$$(docker inspect $$DST_CONT | jq -r '.[0].State.Pid'); \
+		DST_UPPER=$$(grep -oP 'upperdir=\K[^,]+' /proc/$$PID/mounts 2>/dev/null | head -1); \
+	fi; \
+	if [ -z "$$DST_UPPER" ] || [ "$$DST_UPPER" = "null" ]; then \
+		echo "Error: UpperDir not found for $$DST_CONT — container must be running"; exit 1; \
+	fi; \
 	if [ -n "$(NAME)" ]; then \
 		OUT=diffs/$(NAME); \
 	else \
