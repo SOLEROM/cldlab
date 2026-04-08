@@ -19,45 +19,20 @@ agents:
     tags: [base, ubuntu, node]
     # share: /data/proj/myproject   # optional: mounts host folder to ~/share in container
 
-  - name: EveryClaudeCode
-    path: .
-    type: docker
-    container: cldcon-plug-affaan
-    make_run: "make run NAME=plug-affan"
-    make_stop: "make stop NAME=plug-affan"
-    cldStartCmd: "claude --dangerously-skip-permissions"
-    readme: plug-affaan/readme.md
-    auto_start: false
-    tags: [login, plug]
-    share: /data/proj/agents
-
-  - name: OhMyCld
-    path: .
-    type: docker
-    container: cldcon-plug-ohmycld
-    make_run: "make run NAME=plug-ohmycld"
-    make_stop: "make stop NAME=plug-ohmycld"
-    cldStartCmd: "claude --dangerously-skip-permissions"
-    readme: plug-ohmycld/readme.md
-    auto_start: false
-    tags: [login, plug]
-    share: /data/proj/agents
-
-  - name: gsd2
-    path: .
-    type: docker
-    container: cldcon-plug-gsd2
-    make_run: "make run NAME=plug-gsd2"
-    make_stop: "make stop NAME=plug-gsd2"
-    cldStartCmd: "gsd"
-    readme: plug-gsd2/readme.md
-    auto_start: false
-    tags: [login, plug]
-    share: /data/proj/agents
-
   - name: localShell
     path: .
     type: local_shell
     readme: readme.md
     auto_start: false
     tags: [host, utility]
+
+  - name: grif
+    path: .
+    type: docker
+    container: cldcon-grif
+    make_run: "make run NAME=grif"
+    make_stop: "make stop NAME=grif"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: grif/readme.md
+    auto_start: false
+    tags: [login, plug]
