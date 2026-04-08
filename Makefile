@@ -32,7 +32,34 @@ endef
 
 .PHONY: help base login new spin run stop merge share list cmp diff diff.meta clean clear
 
+KNOWN_TARGETS := help base login new spin run stop merge share list cmp diff diff.meta clean clear
+EXTRA_GOALS   := $(filter-out $(KNOWN_TARGETS), $(MAKECMDGOALS))
+
 .DEFAULT_GOAL := help
+
+# catch-all: generate an explicit phony rule for any unknown single target
+#   first run (no image yet) → make new automatically
+#   subsequent runs (image exists) → ask: spin or rebuild
+ifneq ($(EXTRA_GOALS),)
+.PHONY: $(EXTRA_GOALS)
+$(EXTRA_GOALS):
+	@if [ "$(words $(MAKECMDGOALS))" != "1" ]; then \
+		echo "Unknown target '$@'"; exit 1; \
+	fi; \
+	if docker image inspect $(IMG_PREFIX)-$@ >/dev/null 2>&1; then \
+		echo "Environment '$@' already exists. What do you want to do?"; \
+		echo "  1) spin — spin new container from $(IMG_PREFIX)-$@"; \
+		echo "  2) new  — rebuild Dockerfile → image → container"; \
+		printf "Choice [1/2]: "; read CHOICE; \
+		case "$$CHOICE" in \
+			1) $(MAKE) spin NAME=$@ SRC=$(IMG_PREFIX)-$@ ;; \
+			2) $(MAKE) new NAME=$@ ;; \
+			*) echo "[-] Cancelled"; exit 1 ;; \
+		esac; \
+	else \
+		$(MAKE) new NAME=$@; \
+	fi
+endif
 
 help:
 	@echo "Claude Overlay Lab"
