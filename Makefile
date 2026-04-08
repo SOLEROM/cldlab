@@ -64,7 +64,7 @@ help:
 
 base:
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) test NAME=base SRC=$(BASE_IMG)
+	$(MAKE) spin NAME=base SRC=$(BASE_IMG)
 
 login:
 	if docker image inspect $(IMG_PREFIX)-login >/dev/null 2>&1; then \
@@ -72,7 +72,7 @@ login:
 	else \
 		$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX); \
 		$(MAKE) -C login IMG_PREFIX=$(IMG_PREFIX); \
-		$(MAKE) test NAME=login SRC=$(IMG_PREFIX)-login; \
+		$(MAKE) spin NAME=login SRC=$(IMG_PREFIX)-login; \
 	fi
 
 
@@ -92,7 +92,7 @@ new:
 		fi; \
 	fi
 	$(MAKE) -C $(NAME) IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) test NAME=$(NAME) SRC=$(IMG_PREFIX)-$(NAME)
+	$(MAKE) spin NAME=$(NAME) SRC=$(IMG_PREFIX)-$(NAME)
 
 
 # ===============================
