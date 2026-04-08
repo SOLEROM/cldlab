@@ -189,13 +189,20 @@ cmp:
 	CON_CON=$(CON_PREFIX)-$(CON); \
 	BASE_CONT=$$($(call resolve_container,$$BASE_IMG)); \
 	CON_CONT=$$($(call resolve_container,$$CON_CON)); \
+	STARTED=false; \
+	if [ "$$(docker inspect --format '{{.State.Status}}' $$CON_CONT 2>/dev/null)" != "running" ]; then \
+		echo "[*] Starting $$CON_CONT to access overlay..."; \
+		docker start $$CON_CONT >/dev/null; \
+		STARTED=true; \
+	fi; \
 	BASE_UPPER=$$(docker inspect $$BASE_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
 	CON_UPPER=$$(docker inspect $$CON_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
 	echo "=== BASE ($(BASE)) ==="; \
 	sudo tree $$BASE_UPPER -la || sudo find $$BASE_UPPER; \
 	echo ""; \
 	echo "=== CON ($(CON)) ==="; \
-	sudo tree $$CON_UPPER -la || sudo find $$CON_UPPER
+	sudo tree $$CON_UPPER -la || sudo find $$CON_UPPER; \
+	[ "$$STARTED" = "true" ] && docker stop $$CON_CONT >/dev/null && echo "[*] Stopped $$CON_CONT"
 
 # -------------------------------
 # diff (export container changes vs base image)
@@ -206,13 +213,20 @@ diff:
 	@if [ -z "$(BASE)" ] || [ -z "$(CON)" ]; then \
 		echo "Usage: make diff BASE=<name> CON=<name> [NAME=<folder>]"; exit 1; fi
 	@CON_CONT=$(CON_PREFIX)-$(CON); \
+	STARTED=false; \
+	if [ "$$(docker inspect --format '{{.State.Status}}' $$CON_CONT 2>/dev/null)" != "running" ]; then \
+		echo "[*] Starting $$CON_CONT to access overlay..."; \
+		docker start $$CON_CONT >/dev/null; \
+		STARTED=true; \
+	fi; \
 	CON_UPPER=$$(docker inspect $$CON_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
 	if [ -z "$$CON_UPPER" ] || [ "$$CON_UPPER" = "null" ]; then \
 		PID=$$(docker inspect $$CON_CONT | jq -r '.[0].State.Pid'); \
 		CON_UPPER=$$(grep -oP 'upperdir=\K[^,]+' /proc/$$PID/mounts 2>/dev/null | head -1); \
 	fi; \
 	if [ -z "$$CON_UPPER" ] || [ "$$CON_UPPER" = "null" ]; then \
-		echo "Error: UpperDir not found for $$CON_CONT — container must be running"; exit 1; \
+		[ "$$STARTED" = "true" ] && docker stop $$CON_CONT >/dev/null; \
+		echo "Error: UpperDir not found for $$CON_CONT"; exit 1; \
 	fi; \
 	if [ -n "$(NAME)" ]; then \
 		OUT=diffs/$(NAME); \
@@ -222,6 +236,7 @@ diff:
 	mkdir -p $$OUT; \
 	echo "[*] Exporting $(CON) changes (vs $(BASE)) → $$OUT"; \
 	sudo rsync -a $$CON_UPPER/ $$OUT/; \
+	[ "$$STARTED" = "true" ] && docker stop $$CON_CONT >/dev/null && echo "[*] Stopped $$CON_CONT"; \
 	echo "[*] Done"
 
 # -------------------------------
