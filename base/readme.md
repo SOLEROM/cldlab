@@ -6,8 +6,7 @@ This is the foundation all other layers build on.
 ## Build
 
 ```
-make build          # from root (builds cldimg-base)
-make base           # from root (build + spin container)
+make base           # from root (build image + spin container)
 ```
 
 ## Contents

@@ -14,7 +14,7 @@ cldlab/
 ├── diffs/                ← diff/export output (never deleted by clean)
 ├── base/                 ← base layer (Ubuntu + Node + Claude Code CLI)
 ├── login/                ← login layer (persistent auth sessions, isolated ~/.claude)
-└── plug-template/        ← template for new plugin layers
+└── _template/            ← template for new custom layers
 ```
 
 ---
@@ -28,8 +28,7 @@ All container operations and layer targets are in the root `Makefile`.
 | ------- | ----------- |
 | `make base` | Build base image + spin container |
 | `make login` | Build base+login images + spin container |
-| `make plug-template` | Build base+plug-template images + spin container |
-| `make build` | Build base image only (`cldimg-base`) |
+| `make new NAME=<n>` | Copy `_template/` → `<n>/`, build image, spin container; auto-adds entry to `config.yaml` |
 
 ### Plugin `claude_tilda` override
 
@@ -41,11 +40,10 @@ If a layer folder contains a `claude_tilda/` directory, it is mounted directly a
 
 | Command | Description |
 | ------- | ----------- |
-| `make new NAME=<n> SRC=<img>` | Create container from image |
+| `make spin NAME=<n> SRC=<img>` | Spin throwaway container from any image |
 | `make run NAME=<n>` | Re-enter existing container |
-| `make stop NAME=<n>` | Stop running container |
-| `make stop.all` | Stop all running `cldcon-*` containers |
-| `make merge NAME=<n>` | Commit container → image |
+| `make stop [NAME=<n>]` | Stop one container or all |
+| `make merge NAME=<n>` | Commit container → image (`cldimg-<n>`) |
 
 ---
 
@@ -53,9 +51,9 @@ If a layer folder contains a `claude_tilda/` directory, it is mounted directly a
 
 | Command | Description |
 | ------- | ----------- |
-| `make list` | List all managed images and containers |
-| `make cmp SRC=cldimg-<n> DST=cldcon-<n>` | Compare OverlayFS trees |
-| `make diff SRC=cldimg-<n> DST=cldcon-<n> [NAME=<folder>]` | Export DST upperdir to `diffs/` |
+| `make list` | List all managed images and containers (names only, no prefix) |
+| `make cmp BASE=<n> CON=<n>` | Compare OverlayFS trees (base image vs container) |
+| `make diff BASE=<n> CON=<n> [NAME=<folder>]` | Export container changes to `diffs/` |
 | `make diff.meta NAME=<n>` | `docker diff` metadata |
 
 ---
@@ -64,8 +62,8 @@ If a layer folder contains a `claude_tilda/` directory, it is mounted directly a
 
 | Command | Description |
 | ------- | ----------- |
-| `make clean NAME=<n>` | Remove container + image by name |
-| `make clean.all` | Remove all containers + images (with confirmation) |
+| `make clean [NAME=<n>]` | Remove containers only (one or all) |
+| `make clear [NAME=<n>]` | Remove containers + images (one or all, with confirmation) |
 
 ---
 
@@ -81,15 +79,18 @@ If a layer folder contains a `claude_tilda/` directory, it is mounted directly a
 ## Typical Workflow
 
 ```
-make base                                # spin base container
-make new NAME=envA SRC=cldimg-base       # experiment from base
-make diff SRC=cldimg-base DST=cldcon-envA
-make merge NAME=envA                     # snapshot → cldimg-envA
-make new NAME=envB SRC=cldimg-envA       # branch from snapshot
+make base                          # spin base container
+make spin NAME=envA SRC=base       # throwaway container from base image
+make diff BASE=base CON=envA       # export envA changes
+make merge NAME=envA               # snapshot → cldimg-envA
+make spin NAME=envB SRC=envA       # branch from snapshot
 
-make login                               # spin login container
+make login                         # spin login container
 # authenticate inside, then:
-make merge NAME=login                    # save session → cldimg-login
+make merge NAME=login              # save session → cldimg-login
+
+make new NAME=mcp                  # create mcp/ from template, build + spin
+# edit mcp/Dockerfile, then re-run make new NAME=mcp
 ```
 
 ---
@@ -105,14 +106,14 @@ make merge NAME=login                    # save session → cldimg-login
 - `cld` alias = `cd /proj && claude --dangerously-skip-permissions`
 - `ANTHROPIC_API_KEY` is injected at container creation — recreate if it changes
 - OverlayFS inspection requires `sudo` on the host
-- `diffs/` is never deleted by `clean` or `clean.all`
+- `diffs/` is never deleted by `clean` or `clear`
 
 ---
 
 ## Adding a new layer
 
-1. Create `<name>/Dockerfile` with `FROM cldimg-base` (or another layer)
-2. Create `<name>/Makefile` — copy `plug-template/Makefile`, change image name
-3. Add a target in root `Makefile` following the `plug-template` pattern
-4. Add `.PHONY: <name>` to the `.PHONY` line
-5. Create `<name>/readme.md`
+```
+make new NAME=<n>
+```
+
+This copies `_template/` → `<n>/`, patches the Makefile, builds the image, spins the container, and adds an entry to `config.yaml`. Then edit `<n>/Dockerfile` as needed and re-run `make new NAME=<n>`.

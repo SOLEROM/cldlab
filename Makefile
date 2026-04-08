@@ -30,7 +30,7 @@ endef
 # help (default)
 # -------------------------------
 
-.PHONY: help build base login plug new run stop merge list cmp diff diff.meta clean clear
+.PHONY: help base login new spin run stop merge list cmp diff diff.meta clean clear
 
 .DEFAULT_GOAL := help
 
@@ -38,33 +38,25 @@ help:
 	@echo "Claude Overlay Lab"
 	@echo ""
 	@echo "Layers (build image + spin container)"
-	@echo "  make base                             build base image + spin container"
-	@echo "  make login                            build base+login images + spin container"
-	@echo "  make plug  NAME=<n> 		           create plug-<n> from template, build + spin container"
-	@echo "  make build                            build base image only ($(BASE_IMG))"
+	@echo "  make base                                    build base image + spin container"
+	@echo "  make login                                   build base+login images + spin container"
+	@echo "  make new   NAME=<n>                          copy template → <n>/, build image, spin container"
 	@echo ""
 	@echo "Environments"
-	@echo "  make new   NAME=<n> SRC=<img> [SHARE=<path>]  create container from image; SHARE mounts host folder to ~/share"
-	@echo "  make run   NAME=<n> [CMD=<cmd>]               re-enter container; CMD runs inside it (e.g. CMD=\"claude\")"
-	@echo "  make merge NAME=<n>                   commit container → image"
+	@echo "  make spin  NAME=<n> SRC=<img> [SHARE=<path>]  spin throwaway container from any image"
+	@echo "  make run   NAME=<n> [CMD=<cmd>]                re-enter existing container"
+	@echo "  make merge NAME=<n>                            commit container → image"
 	@echo ""
 	@echo "Inspect"
-	@echo "  make list                             list all managed images and containers"
-	@echo "  make cmp  SRC=<entity> DST=<entity>   compare OverlayFS trees"
-	@echo "  make diff SRC=cldimg-<n> DST=cldcon-<n> [NAME=<folder>]   export DST upperdir to diffs/"
-	@echo "  make diff.meta NAME=<n>               docker diff metadata"
+	@echo "  make list                                    list all managed images and containers"
+	@echo "  make cmp  BASE=<n> CON=<n>                  compare OverlayFS trees (base image vs container)"
+	@echo "  make diff BASE=<n> CON=<n> [NAME=<folder>]  export container changes to diffs/"
+	@echo "  make diff.meta NAME=<n>                      docker diff metadata"
 	@echo ""
 	@echo "Cleanup"
-	@echo "  make stop  [NAME=<n>]                 stop one container or all"
-	@echo "  make clean [NAME=<n>]                 remove containers only (one or all)"
-	@echo "  make clear [NAME=<n>]                 remove containers + images (one or all)"
-
-# -------------------------------
-# build base image only
-# -------------------------------
-
-build:
-	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
+	@echo "  make stop  [NAME=<n>]                        stop one container or all"
+	@echo "  make clean [NAME=<n>]                        remove containers only (one or all)"
+	@echo "  make clear [NAME=<n>]                        remove containers + images (one or all)"
 
 # ===============================
 # layers
@@ -72,7 +64,7 @@ build:
 
 base:
 	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) new NAME=base SRC=$(BASE_IMG)
+	$(MAKE) test NAME=base SRC=$(BASE_IMG)
 
 login:
 	if docker image inspect $(IMG_PREFIX)-login >/dev/null 2>&1; then \
@@ -80,22 +72,27 @@ login:
 	else \
 		$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX); \
 		$(MAKE) -C login IMG_PREFIX=$(IMG_PREFIX); \
-		$(MAKE) new NAME=login SRC=$(IMG_PREFIX)-login; \
+		$(MAKE) test NAME=login SRC=$(IMG_PREFIX)-login; \
 	fi
 
 
-plug:
-	@if [ -z "$(NAME)" ] ]; then echo "Usage: make plug NAME=<n>"; exit 1; fi
-	@if [ ! -d plug-$(NAME) ]; then \
-		cp -r plug-template plug-$(NAME); \
-		sed -i 's/plug-template/plug-$(NAME)/g' plug-$(NAME)/Makefile; \
-		echo "[*] Created plug-$(NAME) from template"; \
+new:
+	@if [ -z "$(NAME)" ]; then echo "Usage: make new NAME=<n>"; exit 1; fi
+	@if [ ! -d $(NAME) ]; then \
+		cp -r _template $(NAME); \
+		sed -i 's/_template/$(NAME)/g' $(NAME)/Makefile; \
+		echo "[*] Created $(NAME)/ from template"; \
 	fi
-	$(MAKE) -C base IMG_PREFIX=$(IMG_PREFIX)
-	$(MAKE) -C plug-$(NAME) IMG_PREFIX=$(IMG_PREFIX)
-# 	// spin the new docker; pay attention to toldat claude - use only if needed to share wiht host as will prevent login !!!! //
-# 	$(MAKE) new NAME=plug-$(NAME) SRC=$(IMG_PREFIX)-plug-$(NAME) $(if $(wildcard plug-$(NAME)/claude_tilda),TILDA=plug-$(NAME)/claude_tilda)
-	$(MAKE) new NAME=plug-$(NAME) SRC=$(IMG_PREFIX)-plug-$(NAME)
+	@if [ -f config.yaml ]; then \
+		if ! grep -q "container: cldcon-$(NAME)" config.yaml; then \
+			printf '\n  - name: $(NAME)\n    path: .\n    type: docker\n    container: cldcon-$(NAME)\n    make_run: "make run NAME=$(NAME)"\n    make_stop: "make stop NAME=$(NAME)"\n    cldStartCmd: "claude --dangerously-skip-permissions"\n    readme: $(NAME)/readme.md\n    auto_start: false\n    tags: [login, plug]\n' >> config.yaml; \
+			echo "[*] Added $(NAME) to config.yaml"; \
+		else \
+			echo "[-] $(NAME) already present in config.yaml"; \
+		fi; \
+	fi
+	$(MAKE) -C $(NAME) IMG_PREFIX=$(IMG_PREFIX)
+	$(MAKE) test NAME=$(NAME) SRC=$(IMG_PREFIX)-$(NAME)
 
 
 # ===============================
@@ -108,21 +105,21 @@ plug:
 
 list:
 	@echo "=== Images ($(IMG_PREFIX)-*) ==="
-	@docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep $(IMG_PREFIX) || true
+	@docker images --format "{{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep "^$(IMG_PREFIX)-" | sed 's/^$(IMG_PREFIX)-//' || true
 	@echo ""
 	@echo "=== Containers running ($(CON_PREFIX)-*) ==="
-	@docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
+	@docker ps --format "{{.Names}}\t{{.Status}}\t{{.Image}}" | grep "^$(CON_PREFIX)-" | sed 's/^$(CON_PREFIX)-//' || true
 	@echo ""
 	@echo "=== Containers stopped ($(CON_PREFIX)-*) ==="
-	@docker ps -a --filter "status=exited" --filter "status=created" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | grep $(CON_PREFIX) || true
+	@docker ps -a --filter "status=exited" --filter "status=created" --format "{{.Names}}\t{{.Status}}\t{{.Image}}" | grep "^$(CON_PREFIX)-" | sed 's/^$(CON_PREFIX)-//' || true
 
 # -------------------------------
-# create new container instance from image
-# usage: make new NAME=envA SRC=cldimg-base [SHARE=/path/to/folder]
+# spin throwaway container from any image
+# usage: make spin NAME=envA SRC=cldimg-base [SHARE=/path/to/folder]
 # -------------------------------
 
-new:
-	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make new NAME=envA SRC=cldimg-base [SHARE=/path]"; exit 1; fi
+spin:
+	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make spin NAME=envA SRC=<img> [SHARE=/path]"; exit 1; fi
 	CONT=$(CON_PREFIX)-$(NAME); \
 	docker rm -f $$CONT 2>/dev/null || true; \
 	docker run -it --name $$CONT \
@@ -144,7 +141,7 @@ run:
 	@if [ -z "$(NAME)" ]; then echo "Usage: make run NAME=envA [CMD=<command>]"; exit 1; fi
 	@CONT=$(CON_PREFIX)-$(NAME); \
 	if ! docker inspect $$CONT >/dev/null 2>&1; then \
-		echo "Container $$CONT does not exist. Run: make new NAME=$(NAME) SRC=<img>"; exit 1; \
+		echo "Container $$CONT does not exist. Run: make spin NAME=$(NAME) SRC=<img>"; exit 1; \
 	fi; \
 	if [ -n "$(CMD)" ]; then \
 		docker start $$CONT >/dev/null 2>&1 || true; \
@@ -182,51 +179,49 @@ merge:
 
 # -------------------------------
 # cmp (compare trees)
-# usage: make cmp SRC=cldimg-base DST=cldcon-envA
+# usage: make cmp BASE=<name> CON=<name>
 # -------------------------------
 
 cmp:
-	@if [ -z "$(SRC)" ] || [ -z "$(DST)" ]; then \
-		echo "Usage: make cmp SRC=$(IMG_PREFIX)-<name> DST=$(CON_PREFIX)-<name>"; exit 1; fi
-	@case "$(SRC)" in $(IMG_PREFIX)-*) ;; *) echo "Error: SRC must be a $(IMG_PREFIX)-* image"; exit 1; esac
-	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
-	@SRC_CONT=$$($(call resolve_container,$(SRC))); \
-	DST_CONT=$$($(call resolve_container,$(DST))); \
-	SRC_UPPER=$$(docker inspect $$SRC_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
-	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
-	echo "=== SRC ($$SRC_CONT) ==="; \
-	sudo tree $$SRC_UPPER -la || sudo find $$SRC_UPPER; \
+	@if [ -z "$(BASE)" ] || [ -z "$(CON)" ]; then \
+		echo "Usage: make cmp BASE=<name> CON=<name>"; exit 1; fi
+	@BASE_IMG=$(IMG_PREFIX)-$(BASE); \
+	CON_CON=$(CON_PREFIX)-$(CON); \
+	BASE_CONT=$$($(call resolve_container,$$BASE_IMG)); \
+	CON_CONT=$$($(call resolve_container,$$CON_CON)); \
+	BASE_UPPER=$$(docker inspect $$BASE_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
+	CON_UPPER=$$(docker inspect $$CON_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
+	echo "=== BASE ($(BASE)) ==="; \
+	sudo tree $$BASE_UPPER -la || sudo find $$BASE_UPPER; \
 	echo ""; \
-	echo "=== DST ($$DST_CONT) ==="; \
-	sudo tree $$DST_UPPER -la || sudo find $$DST_UPPER
+	echo "=== CON ($(CON)) ==="; \
+	sudo tree $$CON_UPPER -la || sudo find $$CON_UPPER
 
 # -------------------------------
-# diff (export DST upperdir)
-# usage: make diff SRC=cldimg-base DST=cldcon-envA [NAME=folder]
+# diff (export container changes vs base image)
+# usage: make diff BASE=<name> CON=<name> [NAME=folder]
 # -------------------------------
 
 diff:
-	@if [ -z "$(SRC)" ] || [ -z "$(DST)" ]; then \
-		echo "Usage: make diff SRC=$(IMG_PREFIX)-<name> DST=$(CON_PREFIX)-<name>"; exit 1; fi
-	@case "$(SRC)" in $(IMG_PREFIX)-*) ;; *) echo "Error: SRC must be a $(IMG_PREFIX)-* image"; exit 1; esac
-	@case "$(DST)" in $(CON_PREFIX)-*) ;; *) echo "Error: DST must be a $(CON_PREFIX)-* container"; exit 1; esac
-	@DST_CONT=$$($(call resolve_container,$(DST))); \
-	DST_UPPER=$$(docker inspect $$DST_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
-	if [ -z "$$DST_UPPER" ] || [ "$$DST_UPPER" = "null" ]; then \
-		PID=$$(docker inspect $$DST_CONT | jq -r '.[0].State.Pid'); \
-		DST_UPPER=$$(grep -oP 'upperdir=\K[^,]+' /proc/$$PID/mounts 2>/dev/null | head -1); \
+	@if [ -z "$(BASE)" ] || [ -z "$(CON)" ]; then \
+		echo "Usage: make diff BASE=<name> CON=<name> [NAME=<folder>]"; exit 1; fi
+	@CON_CONT=$(CON_PREFIX)-$(CON); \
+	CON_UPPER=$$(docker inspect $$CON_CONT | jq -r '.[0].GraphDriver.Data.UpperDir'); \
+	if [ -z "$$CON_UPPER" ] || [ "$$CON_UPPER" = "null" ]; then \
+		PID=$$(docker inspect $$CON_CONT | jq -r '.[0].State.Pid'); \
+		CON_UPPER=$$(grep -oP 'upperdir=\K[^,]+' /proc/$$PID/mounts 2>/dev/null | head -1); \
 	fi; \
-	if [ -z "$$DST_UPPER" ] || [ "$$DST_UPPER" = "null" ]; then \
-		echo "Error: UpperDir not found for $$DST_CONT — container must be running"; exit 1; \
+	if [ -z "$$CON_UPPER" ] || [ "$$CON_UPPER" = "null" ]; then \
+		echo "Error: UpperDir not found for $$CON_CONT — container must be running"; exit 1; \
 	fi; \
 	if [ -n "$(NAME)" ]; then \
 		OUT=diffs/$(NAME); \
 	else \
-		OUT=diffs/$(DST)_minus_$(SRC)_$$(date +%Y%m%d_%H%M%S); \
+		OUT=diffs/$(CON)_minus_$(BASE)_$$(date +%Y%m%d_%H%M%S); \
 	fi; \
 	mkdir -p $$OUT; \
-	echo "[*] Exporting $(DST) → $$OUT"; \
-	sudo rsync -a $$DST_UPPER/ $$OUT/; \
+	echo "[*] Exporting $(CON) changes (vs $(BASE)) → $$OUT"; \
+	sudo rsync -a $$CON_UPPER/ $$OUT/; \
 	echo "[*] Done"
 
 # -------------------------------

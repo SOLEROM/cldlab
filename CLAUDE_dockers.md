@@ -26,9 +26,9 @@ cldlab/
 │   ├── Dockerfile        ← FROM cldimg-base
 │   ├── Makefile          ← builds cldimg-login
 │   └── readme.md
-└── plug-template/        ← template for new plugin layers
+└── _template/            ← template for new custom layers
     ├── Dockerfile        ← FROM cldimg-base (edit to add plugins)
-    ├── Makefile          ← builds cldimg-plug-template
+    ├── Makefile          ← builds cldimg-_template
     └── readme.md
 ```
 
@@ -40,20 +40,20 @@ cldlab/
 |------|---------|---------|
 | Images | `cldimg-<name>` | `cldimg-base`, `cldimg-login` |
 | Containers | `cldcon-<name>` | `cldcon-base`, `cldcon-login` |
-| Plugin folders | `plug-<name>/` | `plug-mcp/` |
-| Plugin images | `cldimg-plug-<name>` | `cldimg-plug-mcp` |
+| Custom folders | `<name>/` | `mcp/`, `plug-mcp/` |
+| Custom images | `cldimg-<name>` | `cldimg-mcp`, `cldimg-plug-mcp` |
 
 ---
 
 ## Makefile — key design decisions
 
-**All operations are in the root Makefile only.** Sub-Makefiles (`base/`, `login/`, `plug-*/`) contain only a single `build` target.
+**All operations are in the root Makefile only.** Sub-Makefiles (`base/`, `login/`, `<name>/`) contain only a single `build` target.
 
-**Layer targets** (`base`, `login`, `plug`) chain: build base image → build layer image → `make new` to spin container.
+**Layer targets** (`base`, `login`) chain: build base image → build layer image → `make spin` to spin container. **`make new`** handles custom layers end-to-end.
 
-**`make plug NAME=x SRC=img`** copies `plug-template/` → `plug-x/`, patches its Makefile, builds + spins. On re-run the folder already exists so it just rebuilds.
+**`make new NAME=x`** copies `_template/` → `x/`, patches its Makefile, builds the image (using the sub-Makefile, no forced base rebuild), then spins a container. On re-run the folder already exists so it just rebuilds and re-spins.
 
-**`claude_tilda` overlay**: if a layer folder contains `claude_tilda/`, it is mounted directly as `/home/user/.claude` (volume mount, overrides base template). Used for plugin layers. NOT used for `login` (login keeps `~/.claude` private inside the container for session isolation).
+**`claude_tilda` overlay**: if a custom folder contains `claude_tilda/`, it is mounted directly as `/home/user/.claude` (volume mount, overrides base template). NOT used for `login` (login keeps `~/.claude` private inside the container for session isolation).
 
 **Base `~/.claude` seeding**: `base/entrypoint.sh` copies `base/claude_tilda_base/dot_claude → ~/.claude` and `dot_claude.json → ~/.claude.json` on first container start only (guarded by `~/.claude/.initialized`).
 
@@ -69,18 +69,17 @@ cldlab/
 # Layer spin (build image + create container)
 make base                        # build cldimg-base + spin cldcon-base
 make login                       # build cldimg-login + spin cldcon-login
-make plug NAME=<n> SRC=<img>     # create plug-<n>/, build + spin cldcon-plug-<n>
-make build                       # build cldimg-base only (no container)
+make new   NAME=<n>              # copy template → <n>/, build cldimg-<n>, spin cldcon-<n>
 
 # Container lifecycle
-make new   NAME=<n> SRC=<img>    # create container from any image
+make spin  NAME=<n> SRC=<img>    # spin throwaway container from any image
 make run   NAME=<n>              # re-enter stopped container
 make merge NAME=<n>              # commit container → cldimg-<n>
 
 # Inspect
 make list                        # show all managed images + containers
-make cmp  SRC=cldimg-<n> DST=cldcon-<n>          # compare OverlayFS upper dirs
-make diff SRC=cldimg-<n> DST=cldcon-<n> [NAME=x]  # export DST upperdir → diffs/
+make cmp  BASE=<n> CON=<n>          # compare OverlayFS upper dirs (prefixes added automatically)
+make diff BASE=<n> CON=<n> [NAME=x]  # export container changes → diffs/
 make diff.meta NAME=<n>          # docker diff metadata
 
 # Cleanup
@@ -98,8 +97,8 @@ make clear [NAME=<n>]            # remove containers + images (one or all)
 make base
 # inside: do stuff
 make merge NAME=base
-make new NAME=exp1 SRC=cldimg-base
-make diff SRC=cldimg-base DST=cldcon-exp1
+make spin NAME=exp1 SRC=base
+make diff BASE=base CON=exp1
 ```
 
 **Login / auth session:**
@@ -110,11 +109,11 @@ make merge NAME=login            # save session → cldimg-login
 make run NAME=login              # resume later
 ```
 
-**New plugin layer:**
+**New custom layer:**
 ```
-make plug NAME=mcp SRC=cldimg-login
-# plug-mcp/ created from plug-template/
-# edit plug-mcp/Dockerfile to add plugins, then re-run make plug NAME=mcp SRC=...
+make new NAME=mcp
+# mcp/ created from _template/
+# edit mcp/Dockerfile to add plugins, then re-run make new NAME=mcp
 ```
 
 ---
@@ -122,6 +121,6 @@ make plug NAME=mcp SRC=cldimg-login
 ## What NOT to change without understanding
 
 - `base/entrypoint.sh` — guards first-start init with `.initialized` flag; changing copy logic affects all containers
-- `plug-template/` — source of truth for all `make plug` copies; changes here affect all future plugs
-- `.PHONY` line — must include every target that shares a name with a folder (`base`, `login`, `plug-template`, `plug`)
+- `_template/` — source of truth for all `make new` copies; changes here affect all future custom layers
+- `.PHONY` line — must include every target that shares a name with a folder (`base`, `login`, `new`); `_template` starts with `_` so Make won't confuse it with a target
 - `login` target — intentionally has no `TILDA` mount so `~/.claude` stays private in the container
