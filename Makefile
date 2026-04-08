@@ -30,7 +30,7 @@ endef
 # help (default)
 # -------------------------------
 
-.PHONY: help base login new spin run stop merge list cmp diff diff.meta clean clear
+.PHONY: help base login new spin run stop merge share list cmp diff diff.meta clean clear
 
 .DEFAULT_GOAL := help
 
@@ -46,6 +46,7 @@ help:
 	@echo "  make spin  NAME=<n> SRC=<img> [SHARE=<path>]  spin throwaway container from any image"
 	@echo "  make run   NAME=<n> [CMD=<cmd>]                re-enter existing container"
 	@echo "  make merge NAME=<n>                            commit container → image"
+	@echo "  make share                                     add/change share folder on existing container (interactive)"
 	@echo ""
 	@echo "Inspect"
 	@echo "  make list                                    list all managed images and containers"
@@ -176,6 +177,31 @@ merge:
 	IMG=$(IMG_PREFIX)-$(NAME); \
 	docker commit $$CONT $$IMG; \
 	echo "[*] Created image $$IMG"
+
+# -------------------------------
+# share — add/change share mount on existing container (interactive)
+# -------------------------------
+
+share:
+	@CONTAINERS=$$(docker ps -a --format "{{.Names}}" | grep "^$(CON_PREFIX)-" | sed 's/^$(CON_PREFIX)-//' | sort); \
+	if [ -z "$$CONTAINERS" ]; then echo "[-] No $(CON_PREFIX)-* containers found"; exit 1; fi; \
+	echo "Select container:"; \
+	i=1; \
+	for c in $$CONTAINERS; do \
+		STATUS=$$(docker inspect --format '{{.State.Status}}' $(CON_PREFIX)-$$c 2>/dev/null); \
+		echo "  $$i) $$c  [$$STATUS]"; \
+		i=$$((i+1)); \
+	done; \
+	printf "Choice [1-$$((i-1))]: "; read CHOICE; \
+	NAME=$$(echo "$$CONTAINERS" | sed -n "$${CHOICE}p"); \
+	if [ -z "$$NAME" ]; then echo "[-] Invalid choice"; exit 1; fi; \
+	printf "Share folder path: "; read SHARE_PATH; \
+	if [ -z "$$SHARE_PATH" ]; then echo "[-] No path provided"; exit 1; fi; \
+	if [ ! -d "$$SHARE_PATH" ]; then echo "[-] Path does not exist: $$SHARE_PATH"; exit 1; fi; \
+	echo "[*] Merging $$NAME → $(IMG_PREFIX)-$$NAME ..."; \
+	$(MAKE) -s merge NAME=$$NAME; \
+	echo "[*] Re-spinning with share $$SHARE_PATH ..."; \
+	$(MAKE) -s spin NAME=$$NAME SRC=$(IMG_PREFIX)-$$NAME SHARE=$$SHARE_PATH
 
 # -------------------------------
 # cmp (compare trees)
