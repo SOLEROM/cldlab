@@ -45,6 +45,18 @@ agents:
     tags: [login, plug]
     share: /data/proj/agents
 
+  - name: gstack
+    path: .
+    type: docker
+    container: cldcon-gstack
+    make_run: "make run NAME=gstack"
+    make_stop: "make stop NAME=gstack"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: gstack/readme.md
+    auto_start: false
+    tags: [login, plug]
+    share: /data/proj/agents
+
   - name: OhMyCld
     path: .
     type: docker
@@ -91,3 +103,5 @@ agents:
     readme: fman/readme.md
     auto_start: false
     tags: [login, plug]
+
+
