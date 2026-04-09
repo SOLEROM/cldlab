@@ -7,24 +7,67 @@ app:
   cldStartCmd: "claude"
 
 agents:
-  - name: base
-    path: .
-    type: docker
-    container: cldcon-base
-    make_run: "make run NAME=base"
-    make_stop: "make stop NAME=base"
-    cldStartCmd: "claude --dangerously-skip-permissions"
-    readme: base/readme.md
-    auto_start: false
-    tags: [base, ubuntu, node]
+  # - name: base
+  #   path: .
+  #   type: docker
+  #   container: cldcon-base
+  #   make_run: "make run NAME=base"
+  #   make_stop: "make stop NAME=base"
+  #   cldStartCmd: "claude --dangerously-skip-permissions"
+  #   readme: base/readme.md
+  #   auto_start: false
+  #   tags: [base, ubuntu, node]
     # share: /data/proj/myproject   # optional: mounts host folder to ~/share in container
 
-  - name: localShell
+  - name: 0_cldLAB
     path: .
     type: local_shell
     readme: readme.md
     auto_start: false
     tags: [host, utility]
+
+  - name: 1_Gandalf
+    path: ../gandalf
+    type: local_shell
+    readme: readme.md
+    auto_start: false
+    tags: [host, utility]
+
+  - name: ECC
+    path: .
+    type: docker
+    container: cldcon-ecc
+    make_run: "make run NAME=ecc"
+    make_stop: "make stop NAME=ecc"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: ecc/readme.md
+    auto_start: false
+    tags: [login, plug]
+    share: /data/proj/agents
+
+  - name: OhMyCld
+    path: .
+    type: docker
+    container: cldcon-ohmycld
+    make_run: "make run NAME=ohmycld"
+    make_stop: "make stop NAME=ohmycld"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: ohmycld/readme.md
+    auto_start: false
+    tags: [login, plug]
+    share: /data/proj/agents
+
+  - name: gsd2
+    path: .
+    type: docker
+    container: cldcon-gsd2
+    make_run: "make run NAME=gsd2"
+    make_stop: "make stop NAME=gsd2"
+    cldStartCmd: "gsd"
+    readme: gsd2/readme.md
+    auto_start: false
+    tags: [login, plug]
+    share: /data/proj/agents
 
   - name: grif
     path: .
@@ -36,3 +79,4 @@ agents:
     readme: grif/readme.md
     auto_start: false
     tags: [login, plug]
+    share: /data/proj/agents
