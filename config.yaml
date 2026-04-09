@@ -104,4 +104,13 @@ agents:
     auto_start: false
     tags: [login, plug]
 
-
+  - name: skilkit
+    path: .
+    type: docker
+    container: cldcon-skilkit
+    make_run: "make run NAME=skilkit"
+    make_stop: "make stop NAME=skilkit"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: skilkit/readme.md
+    auto_start: false
+    tags: [login, plug]
