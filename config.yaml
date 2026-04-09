@@ -80,3 +80,14 @@ agents:
     auto_start: false
     tags: [login, plug]
     share: /data/proj/agents
+
+  - name: fman
+    path: .
+    type: docker
+    container: cldcon-fman
+    make_run: "make run NAME=fman"
+    make_stop: "make stop NAME=fman"
+    cldStartCmd: "/home/user/.local/bin/feynman"
+    readme: fman/readme.md
+    auto_start: false
+    tags: [login, plug]

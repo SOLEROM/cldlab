@@ -148,11 +148,15 @@ list:
 
 spin:
 	@if [ -z "$(NAME)" ] || [ -z "$(SRC)" ]; then echo "Usage: make spin NAME=envA SRC=<img> [SHARE=/path]"; exit 1; fi
+	xhost +local:docker 2>/dev/null || true
 	CONT=$(CON_PREFIX)-$(NAME); \
 	docker rm -f $$CONT 2>/dev/null || true; \
 	docker run -it --name $$CONT \
 		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
+		-e DISPLAY=$(DISPLAY) \
 		-e CLDLAB_NAME=$(NAME) \
+		--network host \
+		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-v $(CURDIR)/aliases:/home/user/.aliases:rw \
 		-v $(CURDIR)/base/claude_tilda_base:/home/user/.claude-tpl:ro \
 		$(if $(TILDA),-v $(CURDIR)/$(TILDA):/home/user/.claude) \
