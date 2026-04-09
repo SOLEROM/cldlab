@@ -5,4 +5,4 @@ IMG_PREFIX ?= cldimg
 .DEFAULT_GOAL := build
 
 build:
-	docker build -t $(IMG_PREFIX)-plug-gsd2 .
+	docker build -t $(IMG_PREFIX)-gsd2 .

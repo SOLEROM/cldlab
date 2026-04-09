@@ -5,4 +5,4 @@ IMG_PREFIX ?= cldimg
 .DEFAULT_GOAL := build
 
 build:
-	docker build -t $(IMG_PREFIX)-plug-ohmycld .
+	docker build -t $(IMG_PREFIX)-ohmycld .
