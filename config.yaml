@@ -45,6 +45,17 @@ agents:
     tags: [login, plug]
     share: /data/proj/agents
 
+  - name: awesome
+    path: .
+    type: docker
+    container: cldcon-awesome
+    make_run: "make run NAME=awesome"
+    make_stop: "make stop NAME=awesome"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: awesome/readme.md
+    auto_start: false
+    tags: [login, plug]
+
   - name: gstack
     path: .
     type: docker
@@ -114,3 +125,4 @@ agents:
     readme: skilkit/readme.md
     auto_start: false
     tags: [login, plug]
+
