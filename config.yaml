@@ -34,13 +34,13 @@ agents:
   #   tags: [host, utility]
 
   - name: gandalf
-    path: .
+    path: ../gandalf
     type: docker
     container: cldcon-gandalf
     make_run: "make run NAME=gandalf"
     make_stop: "make stop NAME=gandalf"
     cldStartCmd: "claude --dangerously-skip-permissions"
-    readme: ../gandalf/readme.md
+    readme: readme.md
     auto_start: false
     tags: [login, plug]
 
