@@ -43,3 +43,6 @@ NUL
 */scoring/*.js
 .tmp/
 *release-body.md
+
+gandalf
+./gandalf/*

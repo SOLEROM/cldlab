@@ -26,7 +26,7 @@ class Agent:
         self.make_run = raw.get('make_run', '')
         self.make_stop = raw.get('make_stop', '')
         self.readme_file = raw.get('readme', 'README.md')
-        self.readme_path = os.path.join(self.path, self.readme_file)
+        self.readme_path = os.path.normpath(os.path.join(self.path, self.readme_file))
         self.auto_start = raw.get('auto_start', False)
         self.tags = raw.get('tags', [])
         # container name for docker agents (default cldcon-<name>)

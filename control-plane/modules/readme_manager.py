@@ -32,9 +32,8 @@ class ReadmeManager:
         if not agent:
             return None, 'Agent not found'
         path = agent.readme_path
-        # Guard against path traversal
-        if not os.path.abspath(path).startswith(os.path.abspath(agent.path)):
-            return None, 'Path traversal rejected'
+        if not path.endswith('.md'):
+            return None, 'Only .md files are supported'
         return path, None
 
     def _resolve_file(self, agent_name, rel_path):

@@ -26,12 +26,23 @@ agents:
     auto_start: false
     tags: [host, utility]
 
-  - name: 1_Gandalf
-    path: ../gandalf
-    type: local_shell
-    readme: readme.md
+  # - name: 1_Gandalf
+  #   path: ../gandalf
+  #   type: local_shell
+  #   readme: readme.md
+  #   auto_start: false
+  #   tags: [host, utility]
+
+  - name: gandalf
+    path: .
+    type: docker
+    container: cldcon-gandalf
+    make_run: "make run NAME=gandalf"
+    make_stop: "make stop NAME=gandalf"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: ../gandalf/readme.md
     auto_start: false
-    tags: [host, utility]
+    tags: [login, plug]
 
   - name: ECC
     path: .
@@ -125,4 +136,6 @@ agents:
     readme: skilkit/readme.md
     auto_start: false
     tags: [login, plug]
+
+
 
