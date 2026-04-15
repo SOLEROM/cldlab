@@ -40,10 +40,11 @@ If a layer folder contains a `claude_tilda/` directory, it is mounted directly a
 
 | Command | Description |
 | ------- | ----------- |
-| `make spin NAME=<n> SRC=<img>` | Spin throwaway container from any image |
+| `make spin NAME=<n> SRC=<img> [SHARE=<path>]` | Spin throwaway container from any image; optionally mount a host folder to `~/share` |
 | `make run NAME=<n>` | Re-enter existing container |
 | `make stop [NAME=<n>]` | Stop one container or all |
 | `make merge NAME=<n>` | Commit container → image (`cldimg-<n>`) |
+| `make share` | Interactive: pick a container, provide a path, re-spin it with that folder mounted to `~/share` |
 
 ---
 
@@ -103,6 +104,7 @@ make new NAME=mcp                  # create mcp/ from template, build + spin
 - If a layer has `claude_tilda/`, it is mounted directly as `~/.claude` (overrides base template)
 - `login` layer keeps `~/.claude` private inside the container — credentials never touch the host
 - If `$proj` is set in the environment, it is mounted as `/proj` with trust pre-accepted
+- If `$gandalf` is set in the environment, that path is mounted as `~/gandalf` in every spun container (read-write)
 - `cld` alias = `cd /proj && claude --dangerously-skip-permissions`
 - `ANTHROPIC_API_KEY` is injected at container creation — recreate if it changes
 - OverlayFS inspection requires `sudo` on the host

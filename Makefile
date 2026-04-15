@@ -152,7 +152,6 @@ spin:
 	CONT=$(CON_PREFIX)-$(NAME); \
 	docker rm -f $$CONT 2>/dev/null || true; \
 	docker run -it --name $$CONT \
-		-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY) \
 		-e DISPLAY=$(DISPLAY) \
 		-e CLDLAB_NAME=$(NAME) \
 		--network host \
@@ -162,6 +161,7 @@ spin:
 		$(if $(TILDA),-v $(CURDIR)/$(TILDA):/home/user/.claude) \
 		$${proj:+-v $$proj:/proj} \
 		$(if $(SHARE),-v $(SHARE):/home/user/share:rw) \
+		$(if $(gandalf),-v $(gandalf):/home/user/gandalf:rw) \
 		$(SRC)
 
 # -------------------------------

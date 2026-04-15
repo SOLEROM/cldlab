@@ -59,6 +59,10 @@ cldlab/
 
 **`.env` format**: plain `KEY=VALUE` (no `export`, no quotes needed). Loaded by Make via `-include .env / export` (currently commented out — uncomment if Makefile rules need env vars). Passed to containers via `-e ANTHROPIC_API_KEY=$(ANTHROPIC_API_KEY)`.
 
+**`$gandalf` env var**: if set on the host, every `make spin` mounts that path as `~/gandalf` (read-write) inside the container. Set it once in your shell (`export gandalf=/path/to/folder`) or pass it inline (`gandalf=/path make spin ...`).
+
+**`$SHARE` / `make share`**: pass `SHARE=<path>` to `make spin` to mount a folder as `~/share`. For an existing container, `make share` is an interactive helper that merges it first then re-spins with the chosen share path.
+
 **`.PHONY`**: all targets must be listed — layer folder names match Make target names so Make would otherwise think they're up to date.
 
 ---
@@ -72,7 +76,8 @@ make login                       # build cldimg-login + spin cldcon-login
 make new   NAME=<n>              # copy template → <n>/, build cldimg-<n>, spin cldcon-<n>
 
 # Container lifecycle
-make spin  NAME=<n> SRC=<img>    # spin throwaway container from any image
+make spin  NAME=<n> SRC=<img> [SHARE=<path>]  # spin throwaway container; SHARE mounts to ~/share
+make share                       # interactive: pick container, re-spin with ~/share mount
 make run   NAME=<n>              # re-enter stopped container
 make merge NAME=<n>              # commit container → cldimg-<n>
 
