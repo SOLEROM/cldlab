@@ -53,7 +53,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: ecc/readme.md
     auto_start: false
-    tags: [skills, agents]
+    tags: [plugs]
     share: /data/proj/agents
 
   - name: awesome
@@ -65,7 +65,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: awesome/readme.md
     auto_start: false
-    tags: [skills, agents]
+    tags: [plugs]
 
   - name: gstack
     path: .
@@ -76,7 +76,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: gstack/readme.md
     auto_start: false
-    tags: [skills, agents]
+    tags: [plugs]
     share: /data/proj/agents
 
   - name: OhMyCld
@@ -88,7 +88,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: ohmycld/readme.md
     auto_start: false
-    tags: [skills, agents]
+    tags: [plugs]
     share: /data/proj/agents
 
   - name: supow
@@ -100,7 +100,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: supow/readme.md
     auto_start: false
-    tags: [skills, agents]
+    tags: [plugs]
 
   - name: gsd2
     path: .

@@ -8,6 +8,7 @@
 * ``` (awesome) >cld ```  -  [awesome-claude-code](./awesome/readme.md)
 * ``` (gstack)    >cld ```  -  [gstack](./gstack/readme.md)
 * ``` (ohmycld)   >cld ```  -  [oh-my-claudecode](./ohmycld/readme.md)
+* ``` (supow)     >cld ```  -  [superpowers](./supow/readme.md)
 
 ### Utils
 * ``` (gsd2) >gsd ``` - [get shit done](./gsd2/readme.md)
@@ -17,3 +18,6 @@
 
 ### Research
 * ``` (fman) >feynman ``` - [papers searches research agent](./fman/readme.md)
+
+### repos
+* ``` (skilkit) >skillkit ``` - [skillkit](./skilkit/readme.md)
