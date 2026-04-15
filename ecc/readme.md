@@ -8,7 +8,7 @@
 
 * [my short guide](./shortGuide.md)
 * [security guide](./security.md)
-* [hh-plot](./hh.md)
+* [hMAN](./hh.md)
 
 ```
 1./ 28 agents - typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, kotlin-reviewer, java-reviewer, database-reviewer, and more
