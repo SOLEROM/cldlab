@@ -37,3 +37,10 @@ Roles (optional): architect, executor, planner, analyst, critic, debugger, verif
 ✓ Not rate limited
 
 ```
+
+```
+omc wait          # Check status, get guidance
+omc wait --start  # Enable auto-resume daemon
+omc wait --stop   # Disable daemon
+
+```

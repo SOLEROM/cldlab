@@ -1,10 +1,10 @@
 # skillkit
+" The open source package manager for skills" 
 
-* ref:
-* use: ``` skillkit@latest  // of if installed >skillkit```
+* ref: https://www.agenstskills.com/
 * [command list](./commands.md)
 
-## example
+## Usage
 
 ```
 > skillkit find docker

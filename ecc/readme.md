@@ -1,14 +1,18 @@
 # ECC everything-claude-code
 
 * project git : https://github.com/affaan-m/everything-claude-code
-* [skill list form docker](./skill.list) | [install log](./install.log)
+* [install log](./install.log)
 
-
-# features
-
-* [my short guide](./shortGuide.md)
-* [security guide](./security.md)
+## Using
+* [skill list form docker](./skill.list) 
 * [hMAN](./hh.md)
+* [my short guide](./shortGuide.md)
+
+
+# Features
+
+* [security guide](./security.md)
+
 
 ```
 1./ 28 agents - typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, kotlin-reviewer, java-reviewer, database-reviewer, and more

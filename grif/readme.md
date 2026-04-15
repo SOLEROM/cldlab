@@ -1,9 +1,9 @@
 # graphify
 
-* https://graphify.net
-* [skill extracted from diff](./SKILL.md)
+"Knowledge Graphs for AI Coding Assistants"
 
-Knowledge Graphs for AI Coding Assistants
+* ref: https://graphify.net
+* [skill extracted from diff](./SKILL.md)
 
 ## usage
 
@@ -20,12 +20,12 @@ graphify-out/
 
 ```
 
-## install
+## help
+
 ```
 
-pip install graphifyy
+> /home/user/.local/bin/graphify 
 
-[grif] user:~$ /home/user/.local/bin/graphify 
 Usage: graphify <command>
 
 Commands:

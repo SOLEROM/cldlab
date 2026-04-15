@@ -2,13 +2,14 @@
 a virtual engineering team 
 * ref: https://github.com/garrytan/gstack
 
-## Topics
+## Using
 
 * [Skill Basic](./skillsBasic.md) /  [skills deep dive](./skillsDeep.md)
 * [Power Tools](./power.md)
 * [reviews](./review.md)
+* [hMan](./hh.md)
 
-## Sprints
+## Features
 
 **Think → Plan → Build → Review → Test → Ship → Reflect**
 

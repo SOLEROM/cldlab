@@ -1,4 +1,5 @@
 # feynman
+"AI research agent - Reads papers, searches the web, writes drafts, runs experiments, and cites every claim"
 
 * ref: https://www.feynman.is/
 * https://www.feynman.is/docs/getting-started/quickstart
