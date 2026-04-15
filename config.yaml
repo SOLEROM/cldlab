@@ -139,3 +139,14 @@ agents:
 
 
 
+
+  - name: supow
+    path: .
+    type: docker
+    container: cldcon-supow
+    make_run: "make run NAME=supow"
+    make_stop: "make stop NAME=supow"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: supow/readme.md
+    auto_start: false
+    tags: [login, plug]
