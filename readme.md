@@ -1,7 +1,9 @@
 # ClaudeLAB
-* [labUsage](./usage.md)
+* [lab-usage](./labUsage.md)
+* [tools-usage](./using.md)
 
 ## Tools Map
+
 
 ### Plugs
 * ``` (ecc)     >cld ```  -  [everything-claude-code](./ecc/readme.md)
