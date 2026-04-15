@@ -24,7 +24,7 @@ agents:
     type: local_shell
     readme: readme.md
     auto_start: false
-    tags: [host, utility]
+    tags: [host]
 
   # - name: 1_Gandalf
   #   path: ../gandalf
@@ -42,7 +42,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [WIP]
 
   - name: ECC
     path: .
@@ -53,7 +53,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: ecc/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [skills, agents]
     share: /data/proj/agents
 
   - name: awesome
@@ -65,7 +65,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: awesome/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [skills, agents]
 
   - name: gstack
     path: .
@@ -76,7 +76,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: gstack/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [skills, agents]
     share: /data/proj/agents
 
   - name: OhMyCld
@@ -88,8 +88,19 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: ohmycld/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [skills, agents]
     share: /data/proj/agents
+
+  - name: supow
+    path: .
+    type: docker
+    container: cldcon-supow
+    make_run: "make run NAME=supow"
+    make_stop: "make stop NAME=supow"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: supow/readme.md
+    auto_start: false
+    tags: [skills, agents]
 
   - name: gsd2
     path: .
@@ -100,7 +111,7 @@ agents:
     cldStartCmd: "gsd"
     readme: gsd2/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [toolset , ">gsd"]
     share: /data/proj/agents
 
   - name: grif
@@ -112,7 +123,7 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: grif/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [toolset]
     share: /data/proj/agents
 
   - name: fman
@@ -124,7 +135,7 @@ agents:
     cldStartCmd: "/home/user/.local/bin/feynman"
     readme: fman/readme.md
     auto_start: false
-    tags: [login, plug]
+    tags: [toolset]
 
   - name: skilkit
     path: .
@@ -135,18 +146,4 @@ agents:
     cldStartCmd: "claude --dangerously-skip-permissions"
     readme: skilkit/readme.md
     auto_start: false
-    tags: [login, plug]
-
-
-
-
-  - name: supow
-    path: .
-    type: docker
-    container: cldcon-supow
-    make_run: "make run NAME=supow"
-    make_stop: "make stop NAME=supow"
-    cldStartCmd: "claude --dangerously-skip-permissions"
-    readme: supow/readme.md
-    auto_start: false
-    tags: [login, plug]
+    tags: [toolset , ">skillkit"]

@@ -91,16 +91,21 @@ function renderAgentList() {
     el.innerHTML = '<div class="empty">No agents configured</div>';
     return;
   }
-  el.innerHTML = state.agents.map(a => `
+  el.innerHTML = state.agents.map(a => {
+    const tags = Array.isArray(a.tags) && a.tags.length
+      ? `<div class="agent-item-tags">${a.tags.map(t => `<span class="agent-tag">${esc(t)}</span>`).join('')}</div>`
+      : '';
+    return `
     <div class="agent-item ${a.name === state.selectedAgent ? 'active' : ''}"
          onclick="selectAgent('${esc(a.name)}')">
       <div class="agent-item-dot s-${esc(a.status)}"></div>
       <div class="agent-item-info">
         <div class="agent-item-name">${esc(a.name)}</div>
-        <div class="agent-item-meta">${esc(a.type)}</div>
+        <div class="agent-item-meta">${esc(a.type)}${tags}</div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 async function selectAgent(name) {

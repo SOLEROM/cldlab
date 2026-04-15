@@ -109,6 +109,16 @@ html, body {
 .agent-item-info { flex: 1; min-width: 0; }
 .agent-item-name { font-weight: 500; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .agent-item-meta { font-size: 10px; color: var(--text-muted); }
+.agent-item-tags { display: inline-flex; flex-wrap: wrap; gap: 3px; margin-left: 5px; vertical-align: middle; }
+.agent-tag {
+  font-size: 9px; line-height: 1;
+  padding: 2px 5px;
+  border: 1px solid #a07800;
+  border-radius: 3px;
+  color: #f0c000;
+  background: transparent;
+  letter-spacing: 0.02em;
+}
 
 /* ---- Status colors ---- */
 .s-running            { background: var(--status-running); }
