@@ -1,4 +1,5 @@
 # oh-my-claudecode
+" [30K] Multi-agent orchestration for Claude Code"
 * git : https://github.com/yeachan-heo/oh-my-claudecode
 
 ## Using

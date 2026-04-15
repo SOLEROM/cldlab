@@ -1,4 +1,5 @@
 # ECC everything-claude-code
+" [157K] Anthropic hackathon winner performance optimization system for AI agent harnesses."
 
 * project git : https://github.com/affaan-m/everything-claude-code
 * [install log](./install.log)

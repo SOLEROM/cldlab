@@ -1,5 +1,6 @@
 # gstack
-a virtual engineering team 
+" [70K] a virtual engineering team "
+
 * ref: https://github.com/garrytan/gstack
 
 ## Using

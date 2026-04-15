@@ -1,4 +1,5 @@
 # awesome-claude-code-toolkit
+" [135K] comprehensive toolkit for Claude Code"
 * ref: https://github.com/rohitg00/awesome-claude-code-toolkit
 
 
