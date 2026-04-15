@@ -1,3 +1,11 @@
-FROM cldimg-base
+FROM cldimg-login:latest
 
-# install plugA plugins here
+RUN date >> /home/user/.create_time
+# install any additional dependencies here, e.g.:
+# RUN sudo apt-get update && sudo apt-get install -y <package-name>
+
+RUN git clone https://github.com/affaan-m/everything-claude-code 
+WORKDIR /home/user/everything-claude-code
+RUN ./install.sh --target claude --profile full
+## support multimodel:
+RUN npx ccg-workflow install --all
