@@ -147,3 +147,25 @@ agents:
     readme: skilkit/readme.md
     auto_start: false
     tags: [toolset , ">skillkit"]
+
+  - name: webres
+    path: .
+    type: docker
+    container: cldcon-webres
+    make_run: "make run NAME=webres"
+    make_stop: "make stop NAME=webres"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: webres/readme.md
+    auto_start: false
+    tags: [login, plug]
+
+  - name: agnsk
+    path: .
+    type: docker
+    container: cldcon-agnsk
+    make_run: "make run NAME=agnsk"
+    make_stop: "make stop NAME=agnsk"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: agnsk/readme.md
+    auto_start: false
+    tags: [login, plug]
