@@ -169,3 +169,14 @@ agents:
     readme: agnsk/readme.md
     auto_start: false
     tags: [login, plug]
+
+  - name: ruflo
+    path: .
+    type: docker
+    container: cldcon-ruflo
+    make_run: "make run NAME=ruflo"
+    make_stop: "make stop NAME=ruflo"
+    cldStartCmd: "claude --dangerously-skip-permissions"
+    readme: ruflo/readme.md
+    auto_start: false
+    tags: [login, plug]
