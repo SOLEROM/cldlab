@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+.venv/
 
 
 .env
@@ -46,3 +47,4 @@ NUL
 
 gandalf
 ./gandalf/*
+.gstack/

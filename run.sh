@@ -64,5 +64,13 @@ fi
 
 mkdir -p "$REPO_ROOT/control-plane/runtime/logs"
 
+VENV="$REPO_ROOT/.venv"
+if [[ ! -x "$VENV/bin/python3" ]]; then
+  echo "[setup] No virtualenv found at $VENV — creating one..."
+  python3 -m venv "$VENV"
+  "$VENV/bin/pip" install -q -U pip
+  "$VENV/bin/pip" install -q -r "$REPO_ROOT/control-plane/requirements.txt"
+fi
+
 echo "Starting Claude Control Plane..."
-python3 "$REPO_ROOT/control-plane/server.py" --config "$REPO_ROOT/config.yaml" "${SERVER_ARGS[@]}"
+"$VENV/bin/python3" "$REPO_ROOT/control-plane/server.py" --config "$REPO_ROOT/config.yaml" "${SERVER_ARGS[@]}"

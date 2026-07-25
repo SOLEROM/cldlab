@@ -1,31 +1,14 @@
 /* =============================================
-   Claude Control Plane — Dark Theme
+   Claude Control Plane — app styling
+   ---------------------------------------------
+   The color palette (all --bg-*, --text-*, --accent, --status-* tokens) is
+   supplied by the 4ColThems kit in themes.css, switchable across four themes
+   (dark · light · hc · green) via <html data-theme="…">. This file only
+   consumes those tokens — no raw hex — so the whole UI re-skins on toggle.
+   Only theme-independent layout tokens live here.
    ============================================= */
 
 :root {
-  --bg-base:      #0d1117;
-  --bg-surface:   #161b22;
-  --bg-elevated:  #1c2128;
-  --bg-hover:     #21262d;
-
-  --border:       #30363d;
-  --border-light: #21262d;
-
-  --text-primary:   #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted:     #484f58;
-
-  --accent:    #388bfd;
-  --accent-bg: #1f3d6b;
-  --success:   #3fb950;
-  --warning:   #d29922;
-  --danger:    #f85149;
-
-  --status-running:  #3fb950;
-  --status-stopped:  #f85149;
-  --status-starting: #d29922;
-  --status-unknown:  #6e7681;
-
   --sidebar-w: 220px;
   --header-h:  44px;
   --handle-w:  4px;
@@ -113,9 +96,9 @@ html, body {
 .agent-tag {
   font-size: 9px; line-height: 1;
   padding: 2px 5px;
-  border: 1px solid #a07800;
+  border: 1px solid var(--warning);
   border-radius: 3px;
-  color: #f0c000;
+  color: var(--warning);
   background: transparent;
   letter-spacing: 0.02em;
 }
@@ -123,8 +106,8 @@ html, body {
 /* ---- Status colors ---- */
 .s-running            { background: var(--status-running); }
 .s-stopped            { background: var(--status-stopped); }
-.s-starting, .s-stopping { background: var(--status-starting); }
-.s-configured, .s-unknown { background: var(--status-unknown); }
+.s-starting, .s-stopping { background: var(--status-warn); }
+.s-configured, .s-unknown { background: var(--status-idle); }
 .s-error              { background: var(--danger); }
 
 /* ---- Workspace ---- */
@@ -171,7 +154,7 @@ html, body {
 .status-badge.s-running   { background: var(--status-running);  border-color: var(--status-running);  color: #000; }
 .status-badge.s-stopped   { background: var(--status-stopped);  border-color: var(--status-stopped);  color: #fff; }
 .status-badge.s-starting,
-.status-badge.s-stopping  { background: var(--status-starting); border-color: var(--status-starting); color: #000; }
+.status-badge.s-stopping  { background: var(--status-warn); border-color: var(--status-warn); color: #000; }
 .status-badge.s-error     { background: var(--danger);          border-color: var(--danger);           color: #fff; }
 .status-badge.s-unknown,
 .status-badge.s-configured { color: var(--text-muted);          border-color: var(--border); }
@@ -271,7 +254,7 @@ html, body {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: #0d1117;
+  background: var(--bg-base);
 }
 .terminal-placeholder {
   position: absolute; inset: 0;
@@ -397,7 +380,7 @@ html, body {
 }
 .yaml-error {
   padding: 6px 14px;
-  background: #2d1316;
+  background: color-mix(in srgb, var(--danger) 15%, var(--bg-base));
   color: var(--danger);
   font-size: 11px;
   border-bottom: 1px solid var(--danger);
@@ -421,13 +404,13 @@ html, body {
 .btn-xs     { padding: 1px 5px; font-size: 10px; }
 .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn-accent:hover { filter: brightness(1.1); }
-.btn-success { background: var(--success); border-color: var(--success); color: #0d1117; }
+.btn-success { background: var(--success); border-color: var(--success); color: var(--bg-base); }
 .btn-success:hover { filter: brightness(1.1); }
 .btn-danger  { background: transparent; border-color: var(--danger); color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: #fff; }
 
 /* ---- Status dot ---- */
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--status-unknown); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--status-idle); }
 .status-dot.connected    { background: var(--status-running); }
 .status-dot.disconnected { background: var(--status-stopped); }
 

@@ -3,6 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 4ColThems pre-paint guard: apply saved theme before first paint (no flash).
+       KEY must match STORAGE_KEY in /static/js/theme-toggle.js. -->
+  <script>
+    (function () {
+      try {
+        var KEY = "cldlab-theme";                              // == STORAGE_KEY
+        var valid = { dark: 1, light: 1, hc: 1, green: 1 };    // == THEMES
+        var saved = localStorage.getItem(KEY);
+        var theme = (saved && valid[saved]) ? saved
+          : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light" : "dark");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (_) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+
   <title>Claude Control Plane</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
@@ -12,7 +31,12 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
+  <!-- 4ColThems: palettes first, then toggle button styling, then app CSS
+       (app CSS reads the tokens defined by themes.css). -->
+  <link rel="stylesheet" href="/static/css/themes.css">
+  <link rel="stylesheet" href="/static/css/theme-toggle.css">
   <link rel="stylesheet" href="/static/css/main.css">
+  <script defer src="/static/js/theme-toggle.js"></script>
 </head>
 <body>
 
@@ -25,6 +49,12 @@
   <div class="header-status">
     <span class="status-dot" id="conn-dot"></span>
     <span id="conn-label">Connecting...</span>
+  </div>
+  <!-- 4ColThems: cycle button (dark → light → hc → green). Wired by theme-toggle.js. -->
+  <div class="theme-switch" id="theme-switch" role="group" aria-label="Theme">
+    <button id="theme-cycle" title="Theme" aria-label="Cycle theme">
+      <span id="theme-cycle-icon"></span>
+    </button>
   </div>
 </header>
 

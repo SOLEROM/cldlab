@@ -212,19 +212,60 @@ function switchRightTab(tab) {
   }
 }
 
+// ── Terminal theming (4ColThems) ────────────────────────────────────────────
+// xterm renders to a canvas, so CSS custom properties can't reach inside it.
+// We load the palette objects matching each GUI theme from terminal-themes.json
+// and apply the active one when a terminal is created and whenever the theme
+// changes (theme-toggle.js dispatches a 'themechange' event on window).
+
+// Fallback used until terminal-themes.json loads (or if the fetch fails).
+const FALLBACK_TERM_THEME = {
+  background:'#0d1117', foreground:'#e6edf3', cursor:'#e6edf3', cursorAccent:'#0d1117',
+  selectionBackground:'#264f7855',
+  black:'#0d1117',    red:'#f85149',    green:'#3fb950',  yellow:'#d29922',
+  blue:'#388bfd',     magenta:'#bc8cff', cyan:'#39c5cf',  white:'#b1bac4',
+  brightBlack:'#6e7681', brightRed:'#ff7b72',   brightGreen:'#56d364',
+  brightYellow:'#e3b341', brightBlue:'#79c0ff',  brightMagenta:'#d2a8ff',
+  brightCyan:'#56d4dd',  brightWhite:'#e6edf3',
+};
+let TERM_THEMES = null;   // { dark, light, hc, green } once loaded
+
+function activeThemeName() {
+  return (window.Theme4Col && Theme4Col.current())
+    || document.documentElement.getAttribute('data-theme') || 'dark';
+}
+
+function currentTermTheme() {
+  return (TERM_THEMES && TERM_THEMES[activeThemeName()]) || FALLBACK_TERM_THEME;
+}
+
+// Re-skin every live terminal to match the active theme.
+function applyTermTheme() {
+  const theme = currentTermTheme();
+  for (const sid in state.sessions) {
+    const sess = state.sessions[sid];
+    if (sess && sess.term) sess.term.options.theme = theme;
+  }
+}
+
+async function initTermThemes() {
+  try {
+    const data = await fetchJSON('/static/terminal-themes.json');
+    delete data._comment;                 // strip the doc key
+    TERM_THEMES = data;
+    applyTermTheme();                      // re-skin terminals opened before load
+  } catch (e) {
+    console.warn('terminal-themes.json load failed:', e);
+  }
+}
+
+window.addEventListener('themechange', applyTermTheme);
+
 // ── Terminal sessions ───────────────────────────────────────────────────────
 
 function _makeTerminal() {
   const term = new Terminal({
-    theme: {
-      background:'#0d1117', foreground:'#e6edf3', cursor:'#e6edf3', cursorAccent:'#0d1117',
-      selectionBackground:'#264f7855',
-      black:'#0d1117',    red:'#f85149',    green:'#3fb950',  yellow:'#d29922',
-      blue:'#388bfd',     magenta:'#bc8cff', cyan:'#39c5cf',  white:'#b1bac4',
-      brightBlack:'#6e7681', brightRed:'#ff7b72',   brightGreen:'#56d364',
-      brightYellow:'#e3b341', brightBlue:'#79c0ff',  brightMagenta:'#d2a8ff',
-      brightCyan:'#56d4dd',  brightWhite:'#e6edf3',
-    },
+    theme: currentTermTheme(),
     fontFamily:"'JetBrains Mono','Fira Code','Cascadia Code','Courier New',monospace",
     fontSize:13, lineHeight:1.3, cursorBlink:true, scrollback:5000, allowProposedApi:true,
   });
@@ -911,6 +952,7 @@ function esc(str) {
 // ── Init ──────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  initTermThemes();
   initSocket();
   initSplitter();
   // restoreSessions() is called on socket 'connect' event — covers initial load and reconnects
