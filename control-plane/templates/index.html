@@ -24,10 +24,14 @@
 
   <title>Claude Control Plane</title>
 
+  {% if use_webterm %}
+  <link rel="stylesheet" href="/webterm/static/webterm.css">
+  {% else %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.min.js"></script>
+  {% endif %}
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
@@ -105,16 +109,22 @@
           <div class="terminal-toolbar">
             <div class="terminal-sessions" id="terminal-sessions"></div>
             <div class="terminal-toolbar-right">
+              {% if not use_webterm %}
               <button class="btn btn-sm" onclick="renameActiveTab()" title="Rename active tab">✎</button>
+              {% endif %}
               <button class="btn btn-sm" onclick="newSession('shell')">+ Shell</button>
               <button class="btn btn-sm btn-accent" onclick="newSession('claude')">+ Claude</button>
             </div>
           </div>
           <div class="terminal-container" id="terminal-container">
+            {% if use_webterm %}
+            <div id="webterm-root" style="position:absolute; inset:0;"></div>
+            {% else %}
             <div class="terminal-placeholder" id="terminal-placeholder">
               <p>No terminal session.<br>Click <strong>+ Shell</strong> or <strong>+ Claude</strong>.</p>
             </div>
             <div id="xterm-wrapper" style="display:none; position:absolute; inset:0;"></div>
+            {% endif %}
           </div>
         </div>
 
@@ -177,5 +187,8 @@
 </div>
 
 <script src="/static/js/app.js"></script>
+{% if use_webterm %}
+<script type="module" src="/static/js/webterm-glue.js"></script>
+{% endif %}
 </body>
 </html>

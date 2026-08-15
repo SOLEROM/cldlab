@@ -12,12 +12,9 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
-try:
-    import eventlet
-    eventlet.monkey_patch()
-    ASYNC_MODE = 'eventlet'
-except ImportError:
-    ASYNC_MODE = 'threading'
+# threading async mode: plain threads, no monkey-patching; real WebSockets
+# are provided by the simple-websocket package (see requirements.txt).
+ASYNC_MODE = 'threading'
 
 from flask import Flask
 from flask_socketio import SocketIO
@@ -54,6 +51,11 @@ def create_app(config_path=None, debug=False):
     app.config['SECRET_KEY'] = os.urandom(24)
     CORS(app)
 
+    # Terminal stack: the shared webterm library is the default;
+    # CLDLAB_WEBTERM=0 falls back to the legacy native terminal.
+    use_webterm = os.environ.get('CLDLAB_WEBTERM', '1') == '1'
+    app.config['WEBTERM_ENABLED'] = use_webterm
+
     socketio = SocketIO(app, cors_allowed_origins='*', async_mode=ASYNC_MODE)
 
     cfg = ConfigManager(config_path)
@@ -75,11 +77,31 @@ def create_app(config_path=None, debug=False):
     }
 
     register_routes(app)
-    register_websocket_handlers(socketio, app)
 
-    def cleanup():
-        logger.info('Cleaning up PTY connections...')
-        pty.cleanup_all()
+    webterm_state = None
+    if use_webterm:
+        try:
+            from modules.webterm_integration import init_webterm
+            webterm_state = init_webterm(app, socketio, cfg, registry, runtime)
+        except Exception:
+            # Missing/broken webterm must not take the app down — fall back to
+            # the legacy terminal and say loudly how to fix it.
+            logger.exception(
+                'webterm terminal unavailable — falling back to the legacy '
+                'terminal. Fix with: .venv/bin/python3 -m pip install '
+                '-r control-plane/requirements.txt')
+            app.config['WEBTERM_ENABLED'] = False
+
+    if webterm_state is not None:
+        def cleanup():
+            logger.info('Cleaning up webterm PTY connections...')
+            webterm_state.pty.cleanup_all()
+    else:
+        register_websocket_handlers(socketio, app)
+
+        def cleanup():
+            logger.info('Cleaning up PTY connections...')
+            pty.cleanup_all()
 
     atexit.register(cleanup)
     return app, socketio
@@ -112,7 +134,8 @@ def main():
 ╚══════════════════════════════════════════════════════╝
 """)
     logger.info(f'Starting server on {host}:{port}' + (' [DEBUG]' if args.debug else ''))
-    # Never pass debug=True to socketio.run — with eventlet it breaks WebSocket
+    # threading mode serves through Werkzeug: allow_unsafe_werkzeug is
+    # required outside debug; never pass debug=True (reloader double-starts)
     socketio.run(app, host=host, port=port, debug=False,
                  use_reloader=False, allow_unsafe_werkzeug=True)
 

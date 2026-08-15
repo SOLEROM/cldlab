@@ -68,8 +68,21 @@ VENV="$REPO_ROOT/.venv"
 if [[ ! -x "$VENV/bin/python3" ]]; then
   echo "[setup] No virtualenv found at $VENV — creating one..."
   python3 -m venv "$VENV"
-  "$VENV/bin/pip" install -q -U pip
-  "$VENV/bin/pip" install -q -r "$REPO_ROOT/control-plane/requirements.txt"
+  "$VENV/bin/python3" -m pip install -q -U pip
+  "$VENV/bin/python3" -m pip install -q -r "$REPO_ROOT/control-plane/requirements.txt"
+fi
+
+# Ensure the shared webterm terminal library is importable (editable install
+# from requirements.txt). Without it the server falls back to the legacy shell.
+WEBTERM_SRC="/data/proj/agents/solBench/webterm"
+if ! "$VENV/bin/python3" -c "import webterm" >/dev/null 2>&1; then
+  echo "[setup] webterm library not installed — installing requirements..."
+  "$VENV/bin/python3" -m pip install -q -r "$REPO_ROOT/control-plane/requirements.txt" || true
+  if ! "$VENV/bin/python3" -c "import webterm" >/dev/null 2>&1; then
+    echo "[setup] retrying with explicit path $WEBTERM_SRC ..."
+    "$VENV/bin/python3" -m pip install -q -e "$WEBTERM_SRC" \
+      || echo "[warn] webterm install failed — the terminal will use the legacy stack this run."
+  fi
 fi
 
 echo "Starting Claude Control Plane..."

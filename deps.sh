@@ -63,7 +63,7 @@ need_python_pkg flask
 need_python_pkg flask_socketio
 need_python_pkg flask_cors
 need_python_pkg yaml          # pyyaml
-need_python_pkg eventlet
+need_python_pkg simple_websocket   # simple-websocket
 
 # ── Docker daemon ──────────────────────────────────────────────────────────────
 
@@ -140,7 +140,7 @@ if [[ $HAS_PY_MISSING -eq 1 ]]; then
     "$VENV/bin/pip" install -r "$REQ"
   else
     echo "requirements.txt not found at $REQ — falling back to individual install"
-    "$VENV/bin/pip" install flask flask-socketio flask-cors pyyaml eventlet
+    "$VENV/bin/pip" install flask flask-socketio flask-cors pyyaml simple-websocket
   fi
 fi
 
@@ -151,7 +151,7 @@ MISSING=()
 need_cmd python3; need_cmd pip3; need_cmd docker; need_cmd tmux
 need_cmd make; need_cmd jq; need_cmd git
 need_python_pkg flask; need_python_pkg flask_socketio
-need_python_pkg flask_cors; need_python_pkg yaml; need_python_pkg eventlet
+need_python_pkg flask_cors; need_python_pkg yaml; need_python_pkg simple_websocket
 
 echo ""
 if [[ ${#MISSING[@]} -eq 0 ]]; then

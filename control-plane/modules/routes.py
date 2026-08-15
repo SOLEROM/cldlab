@@ -26,7 +26,8 @@ def register_routes(app):
 
     @app.route('/')
     def index():
-        return render_template('index.html')
+        return render_template('index.html',
+                               use_webterm=app.config.get('WEBTERM_ENABLED', False))
 
     # ---- Config ----
 
