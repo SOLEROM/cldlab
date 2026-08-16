@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- interactive-widget=resizes-content: the soft keyboard shrinks the
+       layout viewport instead of panning over the header — required for the
+       webterm terminal on mobile (same setting remdev verified on-device) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 
   <!-- 4ColThems pre-paint guard: apply saved theme before first paint (no flash).
        KEY must match STORAGE_KEY in /static/js/theme-toggle.js. -->
