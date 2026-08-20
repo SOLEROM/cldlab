@@ -46,6 +46,24 @@ html, body {
   gap: 6px; color: var(--text-secondary); font-size: 12px;
 }
 
+/* ---- Claude status bar (remdev embed, see cldbar-glue.js) ----
+   The iframe carries its own size from the cldBar kit; the slot only places
+   it in the header, before the connection status. Keep the background
+   transparent: the bar's own canvas is transparent so the header shows
+   through, and anything painted here would defeat that. */
+.cldbar-slot { margin-left: auto; display: inline-flex; align-items: center; }
+.cldbar-slot .cldbar-embed { display: block; }
+/* With the bar present it takes the flex spacer, so the status group sits
+   next to it rather than being pushed to the far right. */
+.cldbar-slot + .header-status { margin-left: 12px; }
+
+/* The bar needs ~560px for both meters and their clock readouts; at phone
+   width it would be clipped to a stub and would crowd out the header title,
+   so the header drops it instead. */
+@media (max-width: 720px) {
+  .cldbar-slot { display: none; }
+}
+
 /* ---- Main layout ---- */
 .layout {
   display: flex;

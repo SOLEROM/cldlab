@@ -29,6 +29,34 @@ Global server settings.
 | `tmux_prefix` | `cldcc-` | Prefix prepended to every tmux session name created by the control plane (e.g. `cldcc-base-shell`). Must end with `-`. Change this if you run multiple instances of the control plane. |
 | `scrollback_limit` | `10000` | Number of lines tmux keeps in each terminal's scrollback buffer. Higher values use more RAM. |
 | `cldStartCmd` | `claude` | Command run inside the container when you click **+ Claude** in the UI. Falls back to `bash` if the command exits. Change to e.g. `claude --dangerously-skip-permissions` or any wrapper script. |
+| `remdev_url` | *(empty)* | Optional origin of remdev's Claude status-bar service, embedded in the header. Leave empty in the normal case — see below. |
+
+### The Claude status bar
+
+The meters in the header — the current Claude work window and the week, each
+with the claude.ai limit consumed — are **not** cldlab's. They are an embed of
+remdev's status-bar service (port **6005** on the same station), so cldlab
+keeps no window state and offers no controls: the ⟳ sync button inside the bar
+and remdev's own Claude tab own that.
+
+Nothing to configure in the normal case. The bar's address is built by the
+browser from whatever address you opened cldlab on, so it follows you from the
+station to a phone on the LAN without a setting.
+
+Pin `app.remdev_url` only when remdev runs on a **different host** (or port)
+than cldlab, or when cldlab is served over **HTTPS** — an HTTPS page cannot
+embed a plain-HTTP bar, so remdev must be reachable over HTTPS too and pinned
+here. It must be a full origin (`http://…` or `https://…`); anything else is
+refused when you save the config.
+
+| Header shows | Meaning |
+|---|---|
+| meters, dimmed | remdev is up, its data backend (resman) is not — it retries by itself, ~60 s |
+| nothing at all | remdev is not running, or not reachable from *this* browser |
+
+An empty slot on a phone while the desktop looks fine means the phone cannot
+reach remdev's port — check the pin, not cldlab. Below 720 px the header drops
+the bar entirely: it needs ~560 px.
 
 ### Example
 
@@ -40,6 +68,7 @@ app:
   tmux_prefix: "cldcc-"
   scrollback_limit: 10000
   cldStartCmd: "claude"
+  # remdev_url: http://station:6005   # only when remdev is not on this host
 ```
 
 ---

@@ -318,9 +318,14 @@ async function newSession(kind) {
 function openTerminalSession(sessionId) {
   if (state.sessions[sessionId]) { activateSession(sessionId); return; }
 
+  // The legacy xterm panel isn't in the page under the shared terminal, where
+  // webterm-glue.js replaces every caller of this function. If that module
+  // ever fails to load, do nothing rather than throwing back through them.
   const wrapper = document.getElementById('xterm-wrapper');
+  if (!wrapper) return;
   wrapper.style.display = 'block';
-  document.getElementById('terminal-placeholder').style.display = 'none';
+  const placeholder = document.getElementById('terminal-placeholder');
+  if (placeholder) placeholder.style.display = 'none';
 
   const termDiv = document.createElement('div');
   termDiv.style.cssText = 'position:absolute;inset:0;display:none;';
@@ -382,8 +387,10 @@ function activateSession(sessionId) {
   const sess = state.sessions[sessionId];
   if (sess) {
     sess.element.style.display = 'block';
-    document.getElementById('xterm-wrapper').style.display = 'block';
-    document.getElementById('terminal-placeholder').style.display = 'none';
+    const wrapper = document.getElementById('xterm-wrapper');
+    if (wrapper) wrapper.style.display = 'block';
+    const placeholder = document.getElementById('terminal-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
     setTimeout(() => { sess.fitAddon.fit(); sess.term.focus(); }, 50);
   }
   renderSessionTabs();
@@ -430,8 +437,10 @@ async function closeAgentSessions(agentName) {
 }
 
 function showTerminalPlaceholder() {
-  document.getElementById('terminal-placeholder').style.display = 'flex';
-  document.getElementById('xterm-wrapper').style.display = 'none';
+  const placeholder = document.getElementById('terminal-placeholder');
+  if (placeholder) placeholder.style.display = 'flex';
+  const wrapper = document.getElementById('xterm-wrapper');
+  if (wrapper) wrapper.style.display = 'none';
 }
 
 // ── README — with in-pane navigation ──────────────────────────────────────
@@ -893,6 +902,7 @@ function _openSessionSilent(sessionId) {
   if (state.sessions[sessionId]) return;
 
   const wrapper = document.getElementById('xterm-wrapper');
+  if (!wrapper) return;
   const termDiv = document.createElement('div');
   termDiv.style.cssText = 'position:absolute;inset:0;display:none;';
   wrapper.appendChild(termDiv);

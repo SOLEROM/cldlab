@@ -26,8 +26,14 @@ def register_routes(app):
 
     @app.route('/')
     def index():
+        # The header's Claude window/week meters are rendered by remdev's
+        # embeddable status-bar service (the cldBar kit embeds it; cldlab
+        # keeps no window state of its own). app.remdev_url pins the origin;
+        # unset, the browser derives it from its own hostname — a server-side
+        # 127.0.0.1 default would point remote viewers at *their* machine.
         return render_template('index.html',
-                               use_webterm=app.config.get('WEBTERM_ENABLED', False))
+                               use_webterm=app.config.get('WEBTERM_ENABLED', False),
+                               remdev_url=mgrs()['config'].remdev_url)
 
     # ---- Config ----
 
