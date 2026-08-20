@@ -29,12 +29,16 @@ Global server settings.
 | `tmux_prefix` | `cldcc-` | Prefix prepended to every tmux session name created by the control plane (e.g. `cldcc-base-shell`). Must end with `-`. Change this if you run multiple instances of the control plane. |
 | `scrollback_limit` | `10000` | Number of lines tmux keeps in each terminal's scrollback buffer. Higher values use more RAM. |
 | `cldStartCmd` | `claude` | Command run inside the container when you click **+ Claude** in the UI. Falls back to `bash` if the command exits. Change to e.g. `claude --dangerously-skip-permissions` or any wrapper script. |
-| `remdev_url` | *(empty)* | Optional origin of remdev's Claude status-bar service, embedded in the header. Leave empty in the normal case — see below. |
+| `remdev_url` | *(empty)* | Optional origin of remdev's Claude status-bar service, embedded in the bottom status bar. Leave empty in the normal case — see below. |
 
 ### The Claude status bar
 
-The meters in the header — the current Claude work window and the week, each
-with the claude.ai limit consumed — are **not** cldlab's. They are an embed of
+The bottom line of the window is cldlab's status bar: the Claude meters on the
+left, then the address you opened cldlab on (`⌂` this machine, `⇄` a peer over
+the network) and the websocket connection pill on the right.
+
+The meters — the current Claude work window and the week, each with the
+claude.ai limit consumed — are **not** cldlab's. They are an embed of
 remdev's status-bar service (port **6005** on the same station), so cldlab
 keeps no window state and offers no controls: the ⟳ sync button inside the bar
 and remdev's own Claude tab own that.
@@ -49,14 +53,15 @@ embed a plain-HTTP bar, so remdev must be reachable over HTTPS too and pinned
 here. It must be a full origin (`http://…` or `https://…`); anything else is
 refused when you save the config.
 
-| Header shows | Meaning |
+| The bar shows | Meaning |
 |---|---|
 | meters, dimmed | remdev is up, its data backend (resman) is not — it retries by itself, ~60 s |
-| nothing at all | remdev is not running, or not reachable from *this* browser |
+| an empty strip (white on the dark themes — the browser's own error page fills a frame that failed to load) | remdev is not running, or not reachable from *this* browser |
 
 An empty slot on a phone while the desktop looks fine means the phone cannot
-reach remdev's port — check the pin, not cldlab. Below 720 px the header drops
-the bar entirely: it needs ~560 px.
+reach remdev's port — check the pin, not cldlab. Below ~1040 px the meters are
+dropped rather than clipped: they need 560 px and do not scale down. The
+connection pill stays at every width.
 
 ### Example
 

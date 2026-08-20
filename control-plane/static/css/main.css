@@ -11,6 +11,7 @@
 :root {
   --sidebar-w: 220px;
   --header-h:  44px;
+  --statusbar-h: 24px;
   --handle-w:  4px;
 }
 
@@ -41,33 +42,67 @@ html, body {
 }
 .header-brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
 .header-icon  { font-size: 18px; }
-.header-status {
-  margin-left: auto; display: flex; align-items: center;
-  gap: 6px; color: var(--text-secondary); font-size: 12px;
+/* The connection pill and the Claude meters moved to the bottom status bar,
+   so the theme button takes over the spacer the pill used to hold. */
+.header .theme-switch { margin-left: auto; }
+
+/* ---- Bottom status bar ----
+   The page itself never scrolls (html/body are overflow:hidden), so this is
+   fixed chrome like the header — and .layout below gives up its height, or
+   the bar would cover the bottom of the terminal. Fixed-width readouts only:
+   the Claude embed is 560px and cannot shrink, so a neighbour that grows with
+   app state (an agent name, a path) would draw straight over it. */
+.statusbar {
+  height: var(--statusbar-h);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 12px 0 16px;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.statusbar-side { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.statusbar-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* A nowrap flex item's automatic minimum is its full text width, so
+     without this the ellipsis above never fires and a long FQDN in
+     #status-host would push the row instead of truncating. */
+  min-width: 0;
+}
+#status-host { font-family: monospace; color: var(--text-muted); }
+
+/* ---- Claude window/week meters (remdev embed, see cldbar-glue.js) ----
+   The iframe carries its own size from the cldBar kit; the slot only places
+   it on the bar. Keep the background transparent: the bar's own canvas is
+   transparent so the status bar shows through, and anything painted here
+   would defeat that. */
+.cldbar-slot { display: inline-flex; align-items: center; }
+.cldbar-slot .cldbar-embed { display: block; }
+
+/* The embed needs 560px for both meters and their clock readouts, and the
+   kit caps it at 55vw — so under ~1018px it is clipped rather than scaled.
+   Drop it there instead of showing a stub. */
+@media (max-width: 1040px) {
+  .cldbar-slot { display: none; }
 }
 
-/* ---- Claude status bar (remdev embed, see cldbar-glue.js) ----
-   The iframe carries its own size from the cldBar kit; the slot only places
-   it in the header, before the connection status. Keep the background
-   transparent: the bar's own canvas is transparent so the header shows
-   through, and anything painted here would defeat that. */
-.cldbar-slot { margin-left: auto; display: inline-flex; align-items: center; }
-.cldbar-slot .cldbar-embed { display: block; }
-/* With the bar present it takes the flex spacer, so the status group sits
-   next to it rather than being pushed to the far right. */
-.cldbar-slot + .header-status { margin-left: 12px; }
-
-/* The bar needs ~560px for both meters and their clock readouts; at phone
-   width it would be clipped to a stub and would crowd out the header title,
-   so the header drops it instead. */
+/* On a phone the bar is down to the connection pill: the address readout is
+   the least useful of the three and the row is only so wide. */
 @media (max-width: 720px) {
-  .cldbar-slot { display: none; }
+  #status-host { display: none; }
 }
 
 /* ---- Main layout ---- */
 .layout {
   display: flex;
-  height: calc(100vh - var(--header-h));
+  height: calc(100vh - var(--header-h) - var(--statusbar-h));
   margin-top: var(--header-h);
   overflow: hidden;
 }
@@ -426,6 +461,9 @@ html, body {
 .btn-success:hover { filter: brightness(1.1); }
 .btn-danger  { background: transparent; border-color: var(--danger); color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: #fff; }
+
+/* ---- Connection pill (bottom status bar) ---- */
+.conn-status { color: var(--text-secondary); }
 
 /* ---- Status dot ---- */
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--status-idle); }

@@ -1,4 +1,4 @@
-// cldlab — the Claude window/week status bar in the header.
+// cldlab — the Claude window/week meters on the bottom status bar.
 //
 // The bar itself is remdev's service, embedded through the shared cldBar
 // kit (solBench/cldBar). static/js/cldbar.js is a *copy-in* of that kit —
@@ -6,10 +6,11 @@
 // file is cldlab's policy layer: where the bar mounts, which remdev origin
 // it uses, and how the app's four themes map onto remdev's theme slugs.
 //
-// cldlab has no footer, so the bar sits in the header next to the theme
-// switch; and its theme switcher is vendored 4ColThems (theme-toggle.js,
-// kept unedited), which announces a switch with a `themechange` event —
-// that event is what re-points the embed here.
+// The bar mounts on cldlab's bottom status bar (it used to hang off the
+// header, before that bar existed — the kit's readme asks for a row the
+// 560px embed does not have to share). cldlab's theme switcher is vendored
+// 4ColThems (theme-toggle.js, kept unedited), which announces a switch with
+// a `themechange` event — that event is what re-points the embed here.
 (function () {
   "use strict";
 
@@ -46,7 +47,7 @@
 
   function setupCldBar() {
     var slot = document.getElementById("cldbar-slot");
-    if (!slot || !window.cldBar) return;  // kit not copied in — no header bar
+    if (!slot || !window.cldBar) return;  // kit not copied in — no meters
     try {
       cldBar.mountCldBar(slot, cldbarOptions());
     } catch (err) {
@@ -59,7 +60,7 @@
   // Re-point the embed when the user cycles the app theme. The whole iframe
   // is remounted rather than its src patched: the kit owns the color-scheme
   // derivation, and an iframe whose color-scheme disagrees with the embedded
-  // page's loses transparency and paints an opaque canvas over the header.
+  // page's loses transparency and paints an opaque canvas over the bar.
   // Reloading the tiny page is cheap.
   function syncCldBar() {
     var slot = document.getElementById("cldbar-slot");

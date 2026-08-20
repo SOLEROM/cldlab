@@ -57,19 +57,8 @@
     <span class="header-icon">⚗</span>
     <span class="header-title">Claude Control Plane</span>
   </div>
-  <!-- Claude window + week meters, rendered by remdev's embeddable
-       status-bar service (port 6005) — cldlab holds no window state and has
-       no fallback: a stopped remdev leaves this slot empty by design. The
-       iframe is built browser-side by cldbar-glue.js, from data-remdev-url
-       when config.yaml pins one, else from the page's own hostname — a
-       server-rendered 127.0.0.1 would blank the bar for every viewer that is
-       not the station itself. -->
-  <span class="cldbar-slot" id="cldbar-slot"
-        data-remdev-url="{{ remdev_url }}"></span>
-  <div class="header-status">
-    <span class="status-dot" id="conn-dot"></span>
-    <span id="conn-label">Connecting...</span>
-  </div>
+  <!-- The Claude meters and the connection pill live on the bottom status
+       bar (see <footer class="statusbar"> at the end of the body). -->
   <!-- 4ColThems: cycle button (dark → light → hc → green). Wired by theme-toggle.js. -->
   <div class="theme-switch" id="theme-switch" role="group" aria-label="Theme">
     <button id="theme-cycle" title="Theme" aria-label="Cycle theme">
@@ -201,6 +190,34 @@
     </div>
   </div>
 </div>
+
+<!-- Bottom status bar — fixed-width readouts only. The kit's readme asks
+     for a row the meters do not have to share: the embed is 560px and cannot
+     shrink, so anything here that grows with app state would eventually draw
+     over it.
+
+     The Claude window + week meters are rendered by remdev's embeddable
+     status-bar service (port 6005) — cldlab holds no window state and has no
+     fallback: a stopped remdev leaves the slot empty by design. The iframe is
+     built browser-side by cldbar-glue.js, from data-remdev-url when
+     config.yaml pins one, else from the page's own hostname — a
+     server-rendered 127.0.0.1 would blank the bar for every viewer that is
+     not the station itself. #status-host is left empty here for the same
+     reason: the address this tab was opened on is the browser's fact to
+     report, not the server's. -->
+<footer class="statusbar" id="statusbar">
+  <div class="statusbar-side">
+    <span class="cldbar-slot" id="cldbar-slot"
+          data-remdev-url="{{ remdev_url }}"></span>
+  </div>
+  <div class="statusbar-side">
+    <span class="statusbar-item" id="status-host"></span>
+    <span class="statusbar-item conn-status">
+      <span class="status-dot" id="conn-dot"></span>
+      <span id="conn-label">Connecting...</span>
+    </span>
+  </div>
+</footer>
 
 <script src="/static/js/app.js"></script>
 {% if use_webterm %}

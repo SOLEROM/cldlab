@@ -7,10 +7,17 @@ import re
 import yaml
 
 # app.remdev_url — the origin of remdev's Claude status-bar service, embedded
-# in the header (the shared cldBar kit). Scheme-qualified on purpose: the kit
-# refuses anything else, and a bare host would silently resolve against
-# cldlab's own page.
-REMDEV_URL_RE = re.compile(r'^https?://[^\s/]+/?$')
+# on the bottom status bar (the shared cldBar kit). Scheme-qualified on
+# purpose: the kit refuses anything else, and a bare host would silently
+# resolve against cldlab's own page.
+#
+# A whitelist, not "anything without a slash": this value becomes an iframe
+# src, so `https://station.ts.net@evil.tld` — which READS as the trusted host
+# but resolves to evil.tld, everything before the @ being userinfo — has to be
+# refused, as do control bytes (\s does not cover them). Same pattern as
+# solSeed's app/config.py _ORIGIN_RE; keep the two in step.
+REMDEV_URL_RE = re.compile(
+    r'^https?://(\[[0-9A-Fa-f:.]+\]|[A-Za-z0-9._-]+)(:\d{1,5})?(/[!-~]*)?$')
 
 
 class ConfigManager:
@@ -87,8 +94,9 @@ class ConfigManager:
         except yaml.YAMLError as e:
             return False, f'YAML parse error: {e}'
         # app.remdev_url ends up as an iframe origin. A malformed one leaves
-        # an empty header slot and nothing else, so it is caught here — where
-        # the editor can show the message — rather than in a browser console.
+        # an empty status-bar slot and nothing else, so it is caught here —
+        # where the editor can show the message — rather than in a browser
+        # console.
         remdev_url = (parsed.get('app') or {}).get('remdev_url')
         if str(remdev_url or '').strip() and not REMDEV_URL_RE.match(str(remdev_url)):
             return False, (f"app.remdev_url must be an http(s) origin like "

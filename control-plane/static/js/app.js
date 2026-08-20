@@ -59,6 +59,26 @@ function setConnStatus(ok) {
   document.getElementById('conn-label').textContent = ok ? 'Connected' : 'Disconnected';
 }
 
+// ── Status bar ─────────────────────────────────────────────────────────────
+
+// The address this tab was opened on: the station itself, or a peer reaching
+// it over the network (./run.sh --public). Filled in the browser on purpose —
+// the server only knows the address *it* bound, which is not the one the
+// viewer typed, the same trap as a server-rendered iframe src.
+// location.hostname keeps the brackets on an IPv6 literal (WHATWG URL),
+// so '[::1]' is the form that can actually match.
+const LOCAL_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]'];
+
+function fillStatusHost() {
+  const el = document.getElementById('status-host');
+  if (!el) return;
+  const local = LOCAL_HOSTNAMES.includes(location.hostname);
+  el.textContent = (local ? '\u2302 ' : '\u21c4 ') + location.host;
+  el.title = local
+    ? 'Opened on the machine running cldlab'
+    : 'Opened from another machine — cldlab was started with --public';
+}
+
 async function resetAllSessions() {
   // Close all terminal UI panels
   for (const sid of Object.keys(state.sessions)) {
@@ -963,6 +983,7 @@ function esc(str) {
 
 document.addEventListener('DOMContentLoaded', () => {
   initTermThemes();
+  fillStatusHost();
   initSocket();
   initSplitter();
   // restoreSessions() is called on socket 'connect' event — covers initial load and reconnects
