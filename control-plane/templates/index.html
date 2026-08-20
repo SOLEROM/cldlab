@@ -103,7 +103,15 @@
           <span class="agent-type-badge" id="panel-agent-type"></span>
           <span class="status-badge" id="panel-status-badge"></span>
         </div>
-        <div class="agent-toolbar-right" id="panel-actions"></div>
+        <div class="agent-toolbar-right">
+          <!-- Session launchers live on the agent line so the terminal area
+               below gets the full height (the old terminal-toolbar row only
+               held these two buttons once webterm took over the tab strip). -->
+          <button class="btn btn-sm" onclick="newSession('shell')">+ Shell</button>
+          <button class="btn btn-sm btn-accent" onclick="newSession('claude')">+ Claude</button>
+          <span class="toolbar-sep" id="panel-actions-sep" hidden></span>
+          <span class="agent-actions" id="panel-actions"></span>
+        </div>
       </div>
 
       <!-- Split content area: terminal left, right panel right -->
@@ -111,16 +119,16 @@
 
         <!-- ── Left: terminal (always visible) ── -->
         <div class="split-left">
+          {% if not use_webterm %}
+          <!-- Legacy xterm mode renders its own session tabs here; webterm
+               draws its tab strip inside #webterm-root, so this row is omitted. -->
           <div class="terminal-toolbar">
             <div class="terminal-sessions" id="terminal-sessions"></div>
             <div class="terminal-toolbar-right">
-              {% if not use_webterm %}
               <button class="btn btn-sm" onclick="renameActiveTab()" title="Rename active tab">✎</button>
-              {% endif %}
-              <button class="btn btn-sm" onclick="newSession('shell')">+ Shell</button>
-              <button class="btn btn-sm btn-accent" onclick="newSession('claude')">+ Claude</button>
             </div>
           </div>
+          {% endif %}
           <div class="terminal-container" id="terminal-container">
             {% if use_webterm %}
             <div id="webterm-root" style="position:absolute; inset:0;"></div>

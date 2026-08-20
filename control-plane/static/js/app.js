@@ -168,7 +168,9 @@ function updateToolbar() {
   badge.className = `status-badge s-${a.status}`;
 
   const actions = document.getElementById('panel-actions');
-  if (a.type !== 'docker') { actions.innerHTML = ''; return; }
+  const sep = document.getElementById('panel-actions-sep');
+  if (a.type !== 'docker') { actions.innerHTML = ''; if (sep) sep.hidden = true; return; }
+  if (sep) sep.hidden = false;
 
   const st = a.status;
   const transitional = st === 'starting' || st === 'stopping';
@@ -297,6 +299,7 @@ function _makeTerminal() {
 
 function renderSessionTabs() {
   const container = document.getElementById('terminal-sessions');
+  if (!container) return; // webterm mode: no legacy tab strip in the DOM
   const agentSessions = Object.keys(state.sessions).filter(
     sid => !state.selectedAgent || sid.includes(state.selectedAgent)
   );

@@ -193,6 +193,10 @@ html, body {
 }
 .agent-toolbar-left  { display: flex; align-items: center; gap: 8px; flex: 1; }
 .agent-toolbar-right { display: flex; align-items: center; gap: 6px; }
+.agent-actions       { display: flex; align-items: center; gap: 6px; }
+.agent-actions:empty { display: none; }
+.toolbar-sep         { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+.toolbar-sep[hidden] { display: none; }
 .agent-name-label    { font-weight: 600; font-size: 14px; }
 .agent-type-badge, .status-badge {
   font-size: 10px; padding: 1px 6px;
