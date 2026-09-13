@@ -131,7 +131,14 @@
           {% endif %}
           <div class="terminal-container" id="terminal-container">
             {% if use_webterm %}
-            <div id="webterm-root" style="position:absolute; inset:0;"></div>
+            <!-- Filling the container is a *class* (see .webterm-mount in
+                 main.css), not an inline style: webterm adds .wt-root to this
+                 same element, and its fullscreen rule (.wt-root.wt-fullscreen
+                 → position:fixed) has to be able to win. An inline style beats
+                 any stylesheet rule, so ⛶ would have stayed boxed inside the
+                 terminal container wherever the Fullscreen API is unavailable
+                 (Android PWA) or dropped (Chrome, when the keyboard opens). -->
+            <div id="webterm-root" class="webterm-mount"></div>
             {% else %}
             <div class="terminal-placeholder" id="terminal-placeholder">
               <p>No terminal session.<br>Click <strong>+ Shell</strong> or <strong>+ Claude</strong>.</p>

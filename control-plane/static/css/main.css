@@ -12,8 +12,24 @@
   --sidebar-w: 220px;
   --header-h:  44px;
   --statusbar-h: 24px;
+  /* The bar's full footprint: its own row plus whatever the device reserves
+     under it — the page is viewport-fit=cover, so on a phone the bottom of
+     the viewport is behind the home indicator. Everything that has to stop
+     above the bar subtracts THIS, never --statusbar-h alone. */
+  --statusbar-inset: calc(var(--statusbar-h) + env(safe-area-inset-bottom, 0px));
   --handle-w:  4px;
+
+  /* webterm hook (see its readme, "CSS hooks"): the fullscreen overlay is
+     position:fixed/inset:0 over the whole viewport — the status bar included,
+     and the bar wins the paint order (same z-index, later in the DOM). Publish
+     the bar's height here and the overlay reserves that row instead of putting
+     the line you type on underneath it. */
+  --wt-keybar-h: var(--statusbar-inset);
 }
+
+/* …except in *native* fullscreen, where the terminal is in the top layer and
+   covers the bar outright — reserving a row there would just leave a gap. */
+.wt-root:fullscreen { --wt-keybar-h: 0px; }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -48,19 +64,23 @@ html, body {
 
 /* ---- Bottom status bar ----
    The page itself never scrolls (html/body are overflow:hidden), so this is
-   fixed chrome like the header — and .layout below gives up its height, or
+   fixed chrome like the header — and .layout below stops at its top edge, or
    the bar would cover the bottom of the terminal. Fixed-width readouts only:
    the Claude embed is 560px and cannot shrink, so a neighbour that grows with
    app state (an agent name, a path) would draw straight over it. */
 .statusbar {
-  height: var(--statusbar-h);
+  height: var(--statusbar-inset);
   background: var(--bg-surface);
-  border-top: 1px solid var(--border);
+  /* No rule above the bar: --bg-surface is already a step darker than the
+     terminal's --bg-base, and with the terminal now ending exactly at the
+     bar that hairline read as a black line drawn under the shell. */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 0 12px 0 16px;
+  /* the safe-area padding keeps the readouts on the bar's own row; the box
+     grows downwards into the home-indicator strip so nothing lands there */
+  padding: 0 12px env(safe-area-inset-bottom, 0px) 16px;
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 100;
@@ -77,6 +97,10 @@ html, body {
   min-width: 0;
 }
 #status-host { font-family: monospace; color: var(--text-muted); }
+/* …except on high contrast, where chrome and canvas are both #000 and the
+   contrast border is the *only* thing that separates them (VS Code draws it
+   for the same reason). Dropping it there would merge the bar into the page. */
+[data-theme="hc"] .statusbar { border-top: 1px solid var(--border); }
 
 /* ---- Claude window/week meters (remdev embed, see cldbar-glue.js) ----
    The iframe carries its own size from the cldBar kit; the slot only places
@@ -102,7 +126,17 @@ html, body {
 /* ---- Main layout ---- */
 .layout {
   display: flex;
-  height: calc(100vh - var(--header-h) - var(--statusbar-h));
+  /* Two declarations, not one: vh is the fallback, dvh is the answer. A mobile
+     browser resolves vh against the *large* viewport (the one with the URL bar
+     hidden) while the status bar, being fixed, sits at the bottom of what is
+     actually on screen — so a vh-sized box runs past the visible bottom and
+     the terminal's last rows (the line you type on) end up under the bar. dvh
+     is the viewport as it stands right now, so the box shrinks with the URL
+     bar and with the soft keyboard (viewport meta: resizes-content).
+     Position stays static on purpose: fixed would make this a stacking context
+     and trap webterm's fullscreen overlay under the header. */
+  height: calc(100vh  - var(--header-h) - var(--statusbar-inset));
+  height: calc(100dvh - var(--header-h) - var(--statusbar-inset));
   margin-top: var(--header-h);
   overflow: hidden;
 }
@@ -313,6 +347,12 @@ html, body {
   overflow: hidden;
   background: var(--bg-base);
 }
+/* webterm's mount: fills .terminal-container. One class, no id and no inline
+   style — webterm brands this same element .wt-root, and its fullscreen rule
+   (.wt-root.wt-fullscreen) must out-specify this one to lift the terminal out
+   of the container. */
+.webterm-mount { position: absolute; inset: 0; }
+
 .terminal-placeholder {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;

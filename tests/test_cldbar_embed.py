@@ -107,9 +107,52 @@ class StatusBarTest(unittest.TestCase):
         css = main_css()
         self.assertIn("--statusbar-h", css)
         layout = region(css, ".layout {", "}")
-        self.assertIn("var(--statusbar-h)", layout)
+        self.assertIn("var(--statusbar-inset)", layout)
         statusbar = region(css, ".statusbar {", "}")
         self.assertIn("bottom: 0", statusbar)
+
+    def test_the_layout_measures_the_viewport_that_is_on_screen(self):
+        """vh is the *large* viewport — the one with the mobile URL bar
+        hidden — while the fixed bar sits at the bottom of what is actually
+        visible. Sizing the layout in vh alone therefore pushed the terminal's
+        last rows (the line you type on) under the bar on a phone; dvh is the
+        viewport as it stands, with vh kept only as the older-browser
+        fallback."""
+        layout = region(main_css(), ".layout {", "}")
+        self.assertIn("100dvh", layout)
+        self.assertLess(layout.index("100vh"), layout.index("100dvh"),
+                        "vh must come first — the dvh declaration overrides it")
+
+    def test_the_bar_reserves_the_home_indicator_strip(self):
+        """The page is viewport-fit=cover, so the bottom of the viewport is
+        behind the iOS home indicator. The bar's footprint — what the layout
+        subtracts — is its row plus that inset, never the row alone."""
+        css = main_css()
+        inset = region(css, "--statusbar-inset:", ";")
+        self.assertIn("var(--statusbar-h)", inset)
+        self.assertIn("env(safe-area-inset-bottom", inset)
+
+    def test_fullscreen_reserves_the_bar_instead_of_hiding_rows_under_it(self):
+        """webterm's fullscreen overlay is fixed/inset:0 over the whole
+        viewport, the bar included — and the bar wins the paint order (same
+        z-index, later in the DOM). Its readme's --wt-keybar-h hook is how an
+        app claims that row back; native fullscreen puts the terminal in the
+        top layer above the bar, where reserving it would only leave a gap."""
+        css = main_css()
+        self.assertRegex(css, r"--wt-keybar-h:\s*var\(--statusbar-inset\)")
+        self.assertRegex(css, r"\.wt-root:fullscreen\s*\{[^}]*--wt-keybar-h:\s*0")
+
+    def test_the_webterm_mount_lets_the_fullscreen_rule_win(self):
+        """webterm brands the mount element .wt-root, so an inline
+        position:absolute on it — which beats every stylesheet rule — pinned
+        the fullscreen overlay inside the terminal container on exactly the
+        platforms that need the CSS overlay: an Android PWA (no Fullscreen
+        API) and Chrome, which drops native fullscreen when the keyboard
+        opens."""
+        mount = region(render(), 'id="webterm-root"', ">")
+        self.assertIn('class="webterm-mount"', mount)
+        self.assertNotIn("style=", mount)
+        self.assertIn(".webterm-mount {", main_css())
 
     def test_the_connection_pill_sits_on_the_bar(self):
         """A connection pill is exactly the fixed-width neighbour the kit's
