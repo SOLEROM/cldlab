@@ -4,6 +4,14 @@
 set -e
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
+# solBench checkout: $SOLBENCH_HOME (other layouts) › sibling ../solBench (the bench layout)
+SOLBENCH_HOME="${SOLBENCH_HOME:-$(dirname "$REPO_ROOT")/solBench}"
+if [[ ! -f "$SOLBENCH_HOME/webterm/pyproject.toml" ]]; then
+  echo "[warn] solBench not found at $SOLBENCH_HOME (set SOLBENCH_HOME on a host with another layout)" \
+       "— the terminal uses the legacy stack this run." >&2
+  SOLBENCH_HOME=""
+fi
+
 # Parse flags
 FRESH=0
 SERVER_ARGS=()
@@ -72,17 +80,25 @@ if [[ ! -x "$VENV/bin/python3" ]]; then
   "$VENV/bin/python3" -m pip install -q -r "$REPO_ROOT/control-plane/requirements.txt"
 fi
 
-# Ensure the shared webterm terminal library is importable (editable install
-# from requirements.txt). Without it the server falls back to the legacy shell.
-WEBTERM_SRC="/data/proj/agents/solBench/webterm"
-if ! "$VENV/bin/python3" -c "import webterm" >/dev/null 2>&1; then
-  echo "[setup] webterm library not installed — installing requirements..."
-  "$VENV/bin/python3" -m pip install -q -r "$REPO_ROOT/control-plane/requirements.txt" || true
-  if ! "$VENV/bin/python3" -c "import webterm" >/dev/null 2>&1; then
-    echo "[setup] retrying with explicit path $WEBTERM_SRC ..."
-    "$VENV/bin/python3" -m pip install -q -e "$WEBTERM_SRC" \
-      || echo "[warn] webterm install failed — the terminal will use the legacy stack this run."
-  fi
+# Shared webterm terminal library: editable install from $SOLBENCH_HOME, repaired
+# on every start (a moved solBench leaves a stale editable finder behind).
+# Without it the server falls back to the legacy shell.
+webterm_ok() {  # cwd / and -I: from inside a solBench parent, cwd would shadow the install (webterm/install.sh:62-65)
+  [[ -n "$SOLBENCH_HOME" ]] || return 0
+  (cd / && "$VENV/bin/python3" -I - "$SOLBENCH_HOME/webterm/webterm" <<'PY'
+import os, sys
+try:
+    import webterm
+except Exception:
+    sys.exit(1)
+sys.exit(0 if os.path.samefile(os.path.dirname(webterm.__file__), sys.argv[1]) else 1)
+PY
+  ) 2>/dev/null
+}
+if ! webterm_ok; then
+  echo "[setup] installing webterm from $SOLBENCH_HOME ..."
+  "$SOLBENCH_HOME/webterm/install.sh" "$VENV" >/dev/null \
+    || echo "[warn] webterm install failed — the terminal uses the legacy stack this run." >&2
 fi
 
 echo "Starting Claude Control Plane..."

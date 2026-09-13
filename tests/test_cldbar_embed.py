@@ -21,6 +21,7 @@ dependencies (yaml, jinja2) and runs standalone:
     .venv/bin/python -m unittest discover -s tests
 """
 
+import os
 import re
 import sys
 import unittest
@@ -34,8 +35,10 @@ CONTROL_PLANE = REPO / "control-plane"
 STATIC_JS = CONTROL_PLANE / "static" / "js"
 STATIC_CSS = CONTROL_PLANE / "static" / "css"
 TEMPLATE = CONTROL_PLANE / "templates" / "index.html"
-# Same checkout path run.sh uses for the shared webterm install.
-KIT_DIR = Path("/data/proj/agents/solBench/cldBar")
+# Same solBench checkout run.sh uses for the shared webterm install:
+# $SOLBENCH_HOME (other layouts) › the sibling ../solBench (the bench layout).
+SOLBENCH_HOME = os.environ.get("SOLBENCH_HOME")
+KIT_DIR = (Path(SOLBENCH_HOME) if SOLBENCH_HOME else REPO.parent / "solBench") / "cldBar"
 
 sys.path.insert(0, str(CONTROL_PLANE))
 
@@ -302,7 +305,9 @@ class KitCopyTest(unittest.TestCase):
         """cldbar.js is a copy-in, refreshed by cldBar/install.sh. A local
         edit (or a stale copy) is drift, not an integration."""
         if not KIT_DIR.exists():
-            self.skipTest(f"solBench checkout not at {KIT_DIR}")
+            if SOLBENCH_HOME:  # explicitly set but wrong: a broken host, not a missing kit
+                self.fail(f"SOLBENCH_HOME={SOLBENCH_HOME} has no cldBar kit")
+            self.skipTest(f"solBench checkout not found at {KIT_DIR} — set SOLBENCH_HOME")
         self.assertEqual((STATIC_JS / "cldbar.js").read_bytes(),
                          (KIT_DIR / "cldbar.js").read_bytes())
 

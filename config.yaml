@@ -34,7 +34,7 @@ agents:
   #   tags: [host, utility]
 
   - name: gandalf
-    path: ../gandalf
+    path: /proj/agents/gandalf
     type: docker
     container: cldcon-gandalf
     make_run: "make run NAME=gandalf"
