@@ -21,4 +21,7 @@ RUN date >> /home/user/.create_time
 #############################################################################
 # curl -fsSL https://cdn.jsdelivr.net/gh/ruvnet/ruflo@main/scripts/install.sh | bash
 # Or full setup with MCP + diagnostics:
+# npm -g as the non-root user: use a user-scoped prefix (installer runs `npm install -g ruflo`)
+ENV NPM_CONFIG_PREFIX=/home/user/.npm-global
+ENV PATH=/home/user/.npm-global/bin:$PATH
 RUN curl -fsSL https://cdn.jsdelivr.net/gh/ruvnet/ruflo@main/scripts/install.sh | bash -sx -- --full 2>&1; echo "Exit code: $?"

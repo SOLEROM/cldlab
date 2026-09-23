@@ -21,4 +21,4 @@ RUN date >> /home/user/.create_time
 #############################################################################
 
 ## TBD auto instll by official plugin registry :
-RUN claude -p "/plugin install superpowers@claude-plugins-official"
+RUN claude plugin install superpowers@claude-plugins-official

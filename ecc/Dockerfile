@@ -6,6 +6,6 @@ RUN date >> /home/user/.create_time
 
 RUN git clone https://github.com/affaan-m/everything-claude-code 
 WORKDIR /home/user/everything-claude-code
-RUN ./install.sh --target claude --profile full
+RUN ./install.sh --target claude --profile full --enable-hooks
 ## support multimodel:
-RUN npx ccg-workflow install --all
+RUN npx ccg-workflow init --skip-prompt --lang en
